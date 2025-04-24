@@ -1,6 +1,7 @@
 #####################
 ## Security Groups ##
 #####################
+
 # --------------------- Security Group for Bastion Host (only Port 22) --------------------- #
 
 resource "aws_security_group" "bastion_host" {
