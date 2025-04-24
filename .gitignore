@@ -1,6 +1,6 @@
-key-files/Baston-Host-TF
-key-files/Baston-Host-TF.pub
-key-files/Web01
-key-files/Web01.pub
 key-files/ansible
 key-files/ansible.pub
+key-files/bastion-host
+key-files/bastion-host.pub
+key-files/web-host
+key-files/web-host.pub
