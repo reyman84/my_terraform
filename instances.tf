@@ -147,7 +147,7 @@ resource "aws_instance" "web_servers" {
 
 # --------------------- Jenkins Master ---------------------
 
-resource "aws_instance" "jenkins_master" {
+/*resource "aws_instance" "jenkins_master" {
   #count         = var.stable_instance_count
   #ami           = var.ami["amazon_linux_2"]
   ami           = var.ami["jenkins_master"] # Created AMI [having jenkins installation, Java, Git and Tools added on the portal (Java and Git)]
@@ -163,7 +163,7 @@ resource "aws_instance" "jenkins_master" {
   tags = {
     Name = "Jenkins_Master"
   }
-}
+}*/
 
 # --------------------- Jenkins Slave ---------------------
 
