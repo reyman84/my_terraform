@@ -1,6 +1,3 @@
-key-files/ansible
-key-files/ansible.pub
-key-files/bastion-host
-key-files/bastion-host.pub
-key-files/web-host
-key-files/web-host.pub
+key-files/*
+.terraform/*
+.terraform.lock.hcl
