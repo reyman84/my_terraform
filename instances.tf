@@ -188,6 +188,11 @@ resource "aws_instance" "jenkins_slave" {
   }
 
   provisioner "file" {
+    source      = "key-files"
+    destination = "/home/ec2-user/key-files"
+  }
+
+  provisioner "file" {
     source      = "scripts/jenkins_slave.sh"
     destination = "/home/ec2-user/jenkins_slave.sh"
   }

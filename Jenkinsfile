@@ -34,7 +34,7 @@ pipeline {
 		
 		stage("Key files") {
             steps {
-                sh 'cp -pr /opt/jenkins/key-files/ /opt/jenkins/workspace/pipeline/key-files'
+                sh 'cp -pr /home/ec2-user/key-files/ /opt/jenkins/workspace/$JOB_NAME/key-files'
             }
         }
 		
