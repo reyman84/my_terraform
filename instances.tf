@@ -147,7 +147,7 @@ resource "aws_instance" "web_servers" {
 
 # --------------------- Jenkins Master ---------------------
 
-/*resource "aws_instance" "jenkins_master" {
+resource "aws_instance" "jenkins_master" {
   #count         = var.stable_instance_count
   #ami           = var.ami["amazon_linux_2"]
   ami           = var.ami["jenkins_master"] # Created AMI [having jenkins installation, Java, Git and Tools added on the portal (Java and Git)]
@@ -163,11 +163,11 @@ resource "aws_instance" "web_servers" {
   tags = {
     Name = "Jenkins_Master"
   }
-}*/
+}
 
 # --------------------- Jenkins Slave ---------------------
 
-/*resource "aws_instance" "jenkins_slave" {
+resource "aws_instance" "jenkins_slave" {
   count         = var.unstable_instance_count
   ami           = var.ami["amazon_linux_2"]
   instance_type = "t2.micro"
@@ -178,10 +178,13 @@ resource "aws_instance" "web_servers" {
     aws_subnet.public_subnet_1c.id
   ], count.index)
 
-  vpc_security_group_ids = [aws_security_group.bastion_host.id]
+  vpc_security_group_ids = [
+    aws_security_group.bastion_host.id,
+    aws_security_group.ssh_from_bastion_host.id
+  ]
 
   tags = {
-    Name = "Jenkins_Slave-${count.index + 1}"
+    Name = "Jenkins_Slave"
   }
 
   provisioner "file" {
@@ -198,13 +201,13 @@ resource "aws_instance" "web_servers" {
 
   provisioner "remote-exec" {
     inline = [
-      "sleep 10",
+      "sudo yum install -y dos2unix",
       "dos2unix /home/ec2-user/jenkins_slave.sh",
       "sudo chmod 755 /home/ec2-user/jenkins_slave.sh",
       "sudo sh /home/ec2-user/jenkins_slave.sh"
     ]
   }
-}*/
+}
 
 
 # --------------------- Ansible Control Machine on Ubuntu ---------------------
@@ -293,7 +296,7 @@ resource "aws_instance" "ansible_hosts" {
 
   vpc_security_group_ids = [
     aws_security_group.bastion_host.id,
-    aws_security_group.ansible_host.id,
+    aws_security_group.ssh_from_bastion_host.id,
     aws_security_group.All_Traffic_enabled.id
   ]
 

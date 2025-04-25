@@ -2,9 +2,9 @@
 ## Security Groups ##
 #####################
 
-# --------------------- Security Group for Bastion Host (only Port 22) --------------------- #
-
-resource "aws_security_group" "bastion_host" {
+# --------------------- Security Group for Port 22 --------------------- #
+# SSH from my IP (For Bastion host, Ansible Controll Machine, Jenkins Master)
+resource "aws_security_group" "bastion_host" { 
   name        = "Baston_Host"
   description = "Allow SSH connection from Trusted IP"
   vpc_id      = aws_vpc.vpc.id
@@ -27,6 +27,41 @@ resource "aws_security_group" "bastion_host" {
   }
   tags = {
     Name = "Baston_Host"
+  }
+}
+
+# --------------------- Security Group Ansible-host (port 22 from bastion host) --------------------- #
+# To do SSH from Bastion Host (For Ansible Host, Jenkins Slave)
+
+resource "aws_security_group" "ssh_from_bastion_host" {
+  name        = "ssh_from_bastion_host"
+  description = "Allow port 22 from bastion host"
+  vpc_id      = aws_vpc.vpc.id
+
+  egress {
+    description      = "Allow all outbound traffic"
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  tags = {
+    Name = "ssh_from_bastion_host"
+  }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "allow_22_from_Baston_Host" {
+  description                  = "Allow SSH from Bastion Host"
+  from_port                    = var.ports["ssh"]
+  to_port                      = var.ports["ssh"]
+  ip_protocol                  = "tcp"
+  referenced_security_group_id = aws_security_group.bastion_host.id
+  security_group_id            = aws_security_group.ssh_from_bastion_host.id
+
+  tags = {
+    Name = "Allow SSH from Bastion Host"
   }
 }
 
@@ -159,40 +194,5 @@ resource "aws_security_group" "All_Traffic_enabled" {
 
   tags = {
     Name = "All - Traffic_Enabled"
-  }
-}
-
-
-
-# --------------------- Security Group Ansible-host (port 22 from bastion host) --------------------- #
-resource "aws_security_group" "ansible_host" {
-  name        = "ansible_host"
-  description = "Allow port 22 from bastion host"
-  vpc_id      = aws_vpc.vpc.id
-
-  egress {
-    description      = "Allow all outbound traffic"
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  tags = {
-    Name = "ansible_host"
-  }
-}
-
-resource "aws_vpc_security_group_ingress_rule" "allow_22_from_Baston_Host" {
-  description                  = "Allow SSH from Bastion Host"
-  from_port                    = var.ports["ssh"]
-  to_port                      = var.ports["ssh"]
-  ip_protocol                  = "tcp"
-  referenced_security_group_id = aws_security_group.bastion_host.id
-  security_group_id            = aws_security_group.ansible_host.id
-
-  tags = {
-    Name = "Allow SSH from Bastion Host"
   }
 }
