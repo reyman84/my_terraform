@@ -154,7 +154,6 @@ Things pending:
 3. Adding nodes
 */
 
-
 resource "aws_instance" "jenkins_master" {
   ami           = var.ami["amazon_linux_2"]
   instance_type = "t2.micro"
@@ -168,26 +167,6 @@ resource "aws_instance" "jenkins_master" {
 
   tags = {
     Name = "Jenkins_Master"
-  }
-
-  provisioner "file" {
-    source      = "scripts/jenkins_master.sh"
-    destination = "/home/ec2-user/jenkins_master.sh"
-  }
-
-  connection {
-    type        = "ssh"
-    user        = "ec2-user"
-    private_key = file("key-files/bastion-host")
-    host        = self.public_ip
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo yum install -y dos2unix",
-      "dos2unix /home/ec2-user/jenkins_master.sh",
-      "sudo chmod 755 /home/ec2-user/jenkins_master.sh"
-    ]
   }
 }
 
@@ -214,6 +193,10 @@ resource "aws_volume_attachment" "jenkins_master_attachment" {
 resource "null_resource" "volume_provisioner" {
   depends_on = [aws_volume_attachment.jenkins_master_attachment]
 
+  provisioner "file" {
+    source      = "scripts/jenkins_master.sh"
+    destination = "/home/ec2-user/jenkins_master.sh"
+  }
 
   connection {
     type        = "ssh"
@@ -229,6 +212,9 @@ resource "null_resource" "volume_provisioner" {
       "sudo -i -u root bash -c 'echo \"/dev/xvdf  /tmp  ext4  defaults,nofail  0  2\" >> /etc/fstab'",
       "mount -a",
       "df -h /tmp",
+      "sudo yum install -y dos2unix",
+      "dos2unix /home/ec2-user/jenkins_master.sh",
+      "sudo chmod 755 /home/ec2-user/jenkins_master.sh",
       "sudo sh /home/ec2-user/jenkins_master.sh",
       "sudo reboot"
     ]
@@ -251,34 +237,9 @@ resource "aws_instance" "jenkins_slave" {
   tags = {
     Name = "Jenkins_Slave"
   }
-
-  provisioner "file" {
-    source      = "scripts/jenkins_slave.sh"
-    destination = "/home/ec2-user/jenkins_slave.sh"
-  }
-
-  provisioner "file" {
-    source      = "key-files"
-    destination = "/home/ec2-user/key-files"
-  }
-
-  connection {
-    type        = "ssh"
-    user        = "ec2-user"
-    private_key = file("key-files/bastion-host")
-    host        = self.public_ip
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo yum install -y dos2unix",
-      "dos2unix /home/ec2-user/jenkins_slave.sh",
-      "sudo chmod 755 /home/ec2-user/jenkins_slave.sh"
-    ]
-  }
 }
 
-# Create an additional EBS volume
+# Create an additional EBS volume for "/tmp"
 resource "aws_ebs_volume" "jenkins_slave_volume" {
   availability_zone = aws_instance.jenkins_slave.availability_zone
   size              = 2
@@ -302,6 +263,16 @@ resource "null_resource" "volume_provisioner_slave" {
   depends_on = [aws_volume_attachment.jenkins_slave_attachment]
 
 
+  provisioner "file" {
+    source      = "scripts/jenkins_slave.sh"
+    destination = "/home/ec2-user/jenkins_slave.sh"
+  }
+
+  provisioner "file" {
+    source      = "key-files"
+    destination = "/home/ec2-user/key-files"
+  }
+
   connection {
     type        = "ssh"
     user        = "ec2-user"
@@ -316,6 +287,9 @@ resource "null_resource" "volume_provisioner_slave" {
       "sudo -i -u root bash -c 'echo \"/dev/xvdf  /tmp  ext4  defaults,nofail  0  2\" >> /etc/fstab'",
       "mount -a",
       "df -h /tmp",
+      "sudo yum install -y dos2unix",
+      "dos2unix /home/ec2-user/jenkins_slave.sh",
+      "sudo chmod 755 /home/ec2-user/jenkins_slave.sh",
       "sudo sh /home/ec2-user/jenkins_slave.sh",
       "sudo reboot"
     ]
