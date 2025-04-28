@@ -88,5 +88,6 @@ variable "ports" {
     ssh     = 22
     http    = 80
     jenkins = 8080
+    nexus   = 8081
   }
 }
