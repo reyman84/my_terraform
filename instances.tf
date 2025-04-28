@@ -146,6 +146,14 @@ resource "aws_instance" "web_servers" {
 }*/
 
 # --------------------- Jenkins Master ---------------------
+/*
+Creating jenkins Master slave archiecture from scratch
+Things pending:
+1. Jenkins Master configuration on browser
+2. Adding AWS credentials
+3. Adding nodes
+*/
+
 
 resource "aws_instance" "jenkins_master" {
   ami           = var.ami["amazon_linux_2"]
