@@ -15,4 +15,3 @@ echo $JAVA_HOME
 #java --version
 sudo yum install -y git
 sudo hostnamectl set-hostname jenkins-master
-sudo reboot

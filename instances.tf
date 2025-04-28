@@ -161,10 +161,8 @@ resource "aws_instance" "jenkins_master" {
   tags = {
     Name = "Jenkins_Master"
   }
-  /*
-  # For Jenkins Installation From scratch
 
-    provisioner "file" {
+  provisioner "file" {
     source      = "scripts/jenkins_master.sh"
     destination = "/home/ec2-user/jenkins_master.sh"
   }
@@ -180,37 +178,59 @@ resource "aws_instance" "jenkins_master" {
     inline = [
       "sudo yum install -y dos2unix",
       "dos2unix /home/ec2-user/jenkins_master.sh",
-      "sudo chmod 755 /home/ec2-user/jenkins_master.sh",
-      "#sudo sh /home/ec2-user/jenkins_master.sh"
+      "sudo chmod 755 /home/ec2-user/jenkins_master.sh"
     ]
-  }*/
+  }
 }
 
-# 1. Create a 2 GB EBS volume
+# Create an additional EBS volume
 resource "aws_ebs_volume" "jenkins_master_volume" {
   availability_zone = aws_instance.jenkins_master.availability_zone
-  size              = 2       # Size in GB
-  type              = "gp2"   # General Purpose SSD
+  size              = 2
+  type              = "gp2"
 
   tags = {
-    Name = "jenkins master - /tmp"
+    Name = "/tmp - jenkins master"
   }
 }
 
 # 2. Attach the EBS volume to the Jenkins master instance
 resource "aws_volume_attachment" "jenkins_master_attachment" {
-  device_name = "/dev/sdf"
-  volume_id   = aws_ebs_volume.jenkins_master_volume.id
-  instance_id = aws_instance.jenkins_master.id
+  device_name  = "/dev/sdf"
+  volume_id    = aws_ebs_volume.jenkins_master_volume.id
+  instance_id  = aws_instance.jenkins_master.id
   force_detach = true
 }
 
+# Run commands when the volume is attached using remote-exec provisioner
+resource "null_resource" "volume_provisioner" {
+  depends_on = [aws_volume_attachment.jenkins_master_attachment]
+
+
+  connection {
+    type        = "ssh"
+    user        = "ec2-user"
+    private_key = file("key-files/bastion-host")
+    host        = aws_instance.jenkins_master.public_ip
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo mkfs.ext4 /dev/xvdf",
+      "sudo mount /dev/xvdf /tmp",
+      "sudo -i -u root bash -c 'echo \"/dev/xvdf  /tmp  ext4  defaults,nofail  0  2\" >> /etc/fstab'",
+      "mount -a",
+      "df -h /tmp",
+      "sudo sh /home/ec2-user/jenkins_master.sh",
+      "sudo reboot"
+    ]
+  }
+}
 
 # --------------------- Jenkins Slave ---------------------
 
 resource "aws_instance" "jenkins_slave" {
-  #ami           = var.ami["jenkins_slave"]
-  ami           = var.ami["amazon_linux_2"]    # For Jenkins (slave) installation From scratch
+  ami           = var.ami["amazon_linux_2"]
   instance_type = "t2.micro"
   key_name      = aws_key_pair.baston_host.id
   subnet_id     = aws_subnet.public_subnet_1b.id
@@ -224,16 +244,14 @@ resource "aws_instance" "jenkins_slave" {
     Name = "Jenkins_Slave"
   }
 
-  # For Jenkins "Slave" installation 
+  provisioner "file" {
+    source      = "scripts/jenkins_slave.sh"
+    destination = "/home/ec2-user/jenkins_slave.sh"
+  }
 
   provisioner "file" {
     source      = "key-files"
     destination = "/home/ec2-user/key-files"
-  }
-
-  provisioner "file" {
-    source      = "scripts/jenkins_slave.sh"
-    destination = "/home/ec2-user/jenkins_slave.sh"
   }
 
   connection {
@@ -243,33 +261,57 @@ resource "aws_instance" "jenkins_slave" {
     host        = self.public_ip
   }
 
-  /*provisioner "remote-exec" {
+  provisioner "remote-exec" {
     inline = [
       "sudo yum install -y dos2unix",
       "dos2unix /home/ec2-user/jenkins_slave.sh",
-      "sudo chmod 755 /home/ec2-user/jenkins_slave.sh",
-      "sudo sh /home/ec2-user/jenkins_slave.sh"
+      "sudo chmod 755 /home/ec2-user/jenkins_slave.sh"
     ]
-  }*/
-}
-
-# 1. Create a 2 GB EBS volume
-resource "aws_ebs_volume" "jenkins_slave_volume" {
-  availability_zone = aws_instance.jenkins_slave.availability_zone
-  size              = 2       # Size in GB
-  type              = "gp2"   # General Purpose SSD
-
-  tags = {
-    Name = "jenkins slave - /tmp"
   }
 }
 
-# 2. Attach the EBS volume to the Jenkins master instance
+# Create an additional EBS volume
+resource "aws_ebs_volume" "jenkins_slave_volume" {
+  availability_zone = aws_instance.jenkins_slave.availability_zone
+  size              = 2
+  type              = "gp2"
+
+  tags = {
+    Name = "/tmp - jenkins slave"
+  }
+}
+
+# 2. Attach the EBS volume to the Jenkins slave instance
 resource "aws_volume_attachment" "jenkins_slave_attachment" {
-  device_name = "/dev/sdf"
-  volume_id   = aws_ebs_volume.jenkins_slave_volume.id
-  instance_id = aws_instance.jenkins_slave.id
+  device_name  = "/dev/sdf"
+  volume_id    = aws_ebs_volume.jenkins_slave_volume.id
+  instance_id  = aws_instance.jenkins_slave.id
   force_detach = true
+}
+
+# Run commands when the volume is attached using remote-exec provisioner
+resource "null_resource" "volume_provisioner_slave" {
+  depends_on = [aws_volume_attachment.jenkins_slave_attachment]
+
+
+  connection {
+    type        = "ssh"
+    user        = "ec2-user"
+    private_key = file("key-files/bastion-host")
+    host        = aws_instance.jenkins_slave.public_ip
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo mkfs.ext4 /dev/xvdf",
+      "sudo mount /dev/xvdf /tmp",
+      "sudo -i -u root bash -c 'echo \"/dev/xvdf  /tmp  ext4  defaults,nofail  0  2\" >> /etc/fstab'",
+      "mount -a",
+      "df -h /tmp",
+      "sudo sh /home/ec2-user/jenkins_slave.sh",
+      "sudo reboot"
+    ]
+  }
 }
 
 

@@ -4,7 +4,8 @@
 
 # --------------------- Security Group for Port 22 --------------------- #
 # SSH from my IP (For Bastion host, Ansible Controll Machine, Jenkins Master)
-resource "aws_security_group" "bastion_host" { 
+
+resource "aws_security_group" "bastion_host" {
   name        = "Baston_Host"
   description = "Allow SSH connection from Trusted IP"
   vpc_id      = aws_vpc.vpc.id
@@ -66,6 +67,7 @@ resource "aws_vpc_security_group_ingress_rule" "allow_22_from_Baston_Host" {
 }
 
 # --------------------- ALB Security Group (Only Port 80 from anywhere) --------------------- #
+
 resource "aws_security_group" "http" {
   name        = "ALB_SG"
   description = "Allow HTTP from anywhere"
@@ -94,6 +96,7 @@ resource "aws_security_group" "http" {
 }
 
 # --------------------- Security Group for Jenkins (only Port 8080) --------------------- #
+
 resource "aws_security_group" "jenkins_master" {
   name        = "Port 8080 for Jenkins"
   description = "Allow port 8080 from trusted IP"
@@ -122,6 +125,7 @@ resource "aws_security_group" "jenkins_master" {
 }
 
 # --------------------- Security Group Web Server --------------------- #
+
 resource "aws_security_group" "web01" {
   name        = "Web_Server"
   description = "Allow HTTP and SSH inbound traffic and all outbound traffic"
