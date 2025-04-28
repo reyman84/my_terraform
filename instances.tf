@@ -225,7 +225,7 @@ resource "aws_instance" "jenkins_slave" {
   }
 
   # For Jenkins "Slave" installation 
-/*
+
   provisioner "file" {
     source      = "key-files"
     destination = "/home/ec2-user/key-files"
@@ -243,7 +243,7 @@ resource "aws_instance" "jenkins_slave" {
     host        = self.public_ip
   }
 
-  provisioner "remote-exec" {
+  /*provisioner "remote-exec" {
     inline = [
       "sudo yum install -y dos2unix",
       "dos2unix /home/ec2-user/jenkins_slave.sh",
