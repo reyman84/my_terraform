@@ -148,9 +148,7 @@ resource "aws_instance" "web_servers" {
 # --------------------- Jenkins Master ---------------------
 
 resource "aws_instance" "jenkins_master" {
-  #count         = var.stable_instance_count
-  #ami           = var.ami["amazon_linux_2"]
-  ami           = var.ami["jenkins_master"] # Created AMI [having jenkins installation, Java, Git and Tools added on the portal (Java and Git)]
+  ami           = var.ami["amazon_linux_2"]
   instance_type = "t2.micro"
   key_name      = aws_key_pair.baston_host.id
   subnet_id     = aws_subnet.public_subnet_1b.id
@@ -163,20 +161,59 @@ resource "aws_instance" "jenkins_master" {
   tags = {
     Name = "Jenkins_Master"
   }
+  /*
+  # For Jenkins Installation From scratch
+
+    provisioner "file" {
+    source      = "scripts/jenkins_master.sh"
+    destination = "/home/ec2-user/jenkins_master.sh"
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ec2-user"
+    private_key = file("key-files/bastion-host")
+    host        = self.public_ip
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo yum install -y dos2unix",
+      "dos2unix /home/ec2-user/jenkins_master.sh",
+      "sudo chmod 755 /home/ec2-user/jenkins_master.sh",
+      "#sudo sh /home/ec2-user/jenkins_master.sh"
+    ]
+  }*/
 }
+
+# 1. Create a 2 GB EBS volume
+resource "aws_ebs_volume" "jenkins_master_volume" {
+  availability_zone = aws_instance.jenkins_master.availability_zone
+  size              = 2       # Size in GB
+  type              = "gp2"   # General Purpose SSD
+
+  tags = {
+    Name = "jenkins master - /tmp"
+  }
+}
+
+# 2. Attach the EBS volume to the Jenkins master instance
+resource "aws_volume_attachment" "jenkins_master_attachment" {
+  device_name = "/dev/sdf"
+  volume_id   = aws_ebs_volume.jenkins_master_volume.id
+  instance_id = aws_instance.jenkins_master.id
+  force_detach = true
+}
+
 
 # --------------------- Jenkins Slave ---------------------
 
 resource "aws_instance" "jenkins_slave" {
-  count         = var.unstable_instance_count
-  ami           = var.ami["amazon_linux_2"]
+  #ami           = var.ami["jenkins_slave"]
+  ami           = var.ami["amazon_linux_2"]    # For Jenkins (slave) installation From scratch
   instance_type = "t2.micro"
   key_name      = aws_key_pair.baston_host.id
-  subnet_id = element([
-    aws_subnet.public_subnet_1a.id,
-    aws_subnet.public_subnet_1b.id,
-    aws_subnet.public_subnet_1c.id
-  ], count.index)
+  subnet_id     = aws_subnet.public_subnet_1b.id
 
   vpc_security_group_ids = [
     aws_security_group.bastion_host.id,
@@ -187,6 +224,8 @@ resource "aws_instance" "jenkins_slave" {
     Name = "Jenkins_Slave"
   }
 
+  # For Jenkins "Slave" installation 
+/*
   provisioner "file" {
     source      = "key-files"
     destination = "/home/ec2-user/key-files"
@@ -211,7 +250,26 @@ resource "aws_instance" "jenkins_slave" {
       "sudo chmod 755 /home/ec2-user/jenkins_slave.sh",
       "sudo sh /home/ec2-user/jenkins_slave.sh"
     ]
+  }*/
+}
+
+# 1. Create a 2 GB EBS volume
+resource "aws_ebs_volume" "jenkins_slave_volume" {
+  availability_zone = aws_instance.jenkins_slave.availability_zone
+  size              = 2       # Size in GB
+  type              = "gp2"   # General Purpose SSD
+
+  tags = {
+    Name = "jenkins slave - /tmp"
   }
+}
+
+# 2. Attach the EBS volume to the Jenkins master instance
+resource "aws_volume_attachment" "jenkins_slave_attachment" {
+  device_name = "/dev/sdf"
+  volume_id   = aws_ebs_volume.jenkins_slave_volume.id
+  instance_id = aws_instance.jenkins_slave.id
+  force_detach = true
 }
 
 
