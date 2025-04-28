@@ -53,8 +53,8 @@ variable "ami" {
   default = {
     amazon_linux_2 = "ami-00a929b66ed6e0de6"
     ubuntu         = "ami-084568db4383264d4"
-    jenkins_master = "ami-0ed208df9b2e7bb28"
-    #jenkins_slave = ""
+    #jenkins_master = "ami-094d402679a4bc0c5"
+    #jenkins_slave = "ami-0de5d8c87ce501d11"
     #ansible_host   = "ami-0b74b23e2438b6f44"     - CentOS 09 "Chargeable"
   }
 }
