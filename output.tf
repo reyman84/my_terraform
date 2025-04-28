@@ -1,11 +1,11 @@
-output "Jenkins_Slave" {
-  description = "Public IPs of Jenkins Slave"
-  value       = [for instance in aws_instance.jenkins_slave : instance.public_ip]
-}
-
 output "Jenkins_Master" {
   description = "Public IPs of Jenkins Master"
   value       = aws_instance.jenkins_master.public_ip
+}
+
+output "Jenkins_Slave" {
+  description = "Public IPs of Jenkins Slave"
+  value       = aws_instance.jenkins_slave.public_ip
 }
 
 /*output "Web_Server---Public_IPs" {
