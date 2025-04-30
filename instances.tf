@@ -1,14 +1,14 @@
-# --------------------- Baston Host ---------------------
+# --------------------- Bastion Host ---------------------
 /*
-resource "aws_instance" "baston_host" {
+resource "aws_instance" "bastion_host" {
   instance_type          = "t2.micro"
   ami                    = var.ami["amazon_linux_2"]
-  key_name               = aws_key_pair.baston_host.id
+  key_name               = aws_key_pair.bastion_host.id
   subnet_id              = aws_subnet.public_subnet_1a.id
   vpc_security_group_ids = [aws_security_group.bastion_host.id]
 
   tags = {
-    Name = "Baston-Host"
+    Name = "Bastion-Host"
   }
 
   provisioner "file" {
@@ -35,7 +35,7 @@ resource "aws_instance" "baston_host" {
 resource "aws_instance" "docker" {
   instance_type = "t2.medium"               # t2-medium is "Chargeable"
   ami           = var.ami["amazon_linux_2"]
-  key_name      = aws_key_pair.baston_host.id
+  key_name      = aws_key_pair.bastion_host.id
   subnet_id     = aws_subnet.public_subnet_1a.id
   vpc_security_group_ids = [
     aws_security_group.bastion_host.id,
@@ -112,7 +112,7 @@ resource "aws_instance" "web_servers" {
 /*resource "aws_instance" "manual_roject_sql" {
   instance_type = "t2.micro"
   ami           = var.ami["amazon_linux_2"]
-  key_name      = aws_key_pair.baston_host.id
+  key_name      = aws_key_pair.bastion_host.id
   subnet_id     = aws_subnet.public_subnet_1a.id
 
   vpc_security_group_ids = [
@@ -252,7 +252,7 @@ Things pending:
 /*resource "aws_instance" "jenkins_master" {
   ami           = var.ami["amazon_linux_2"]
   instance_type = "t2.micro"
-  key_name      = aws_key_pair.baston_host.id
+  key_name      = aws_key_pair.bastion_host.id
   subnet_id     = aws_subnet.public_subnet_1b.id
 
   vpc_security_group_ids = [
@@ -321,7 +321,7 @@ resource "null_resource" "volume_provisioner" {
 /*resource "aws_instance" "jenkins_slave" {
   ami           = var.ami["amazon_linux_2"]
   instance_type = "t2.micro"
-  key_name      = aws_key_pair.baston_host.id
+  key_name      = aws_key_pair.bastion_host.id
   subnet_id     = aws_subnet.public_subnet_1b.id
 
   vpc_security_group_ids = [
@@ -396,7 +396,7 @@ resource "null_resource" "volume_provisioner_slave" {
 resource "aws_instance" "nexus" {
   ami           = var.ami["amazon_linux_2"]
   instance_type = "t2.micro"
-  key_name      = aws_key_pair.baston_host.id
+  key_name      = aws_key_pair.bastion_host.id
   subnet_id     = aws_subnet.public_subnet_1b.id
 
   vpc_security_group_ids = [
@@ -441,7 +441,7 @@ resource "aws_instance" "nexus" {
 resource "aws_instance" "sonarqube" {
   ami           = var.ami["ubuntu"]
   instance_type = "t2.micro"
-  key_name      = aws_key_pair.baston_host.id
+  key_name      = aws_key_pair.bastion_host.id
   subnet_id     = aws_subnet.public_subnet_1b.id
 
   vpc_security_group_ids = [

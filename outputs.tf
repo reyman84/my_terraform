@@ -28,9 +28,9 @@ output "Docker_Public_ip" {
   value       = aws_instance.docker.public_ip
 }
 
-output "Baston_Host_Public_ip" {
-  description = "Generates the Public IP of the Baston Host"
-  value       = aws_instance.baston_host.public_ip
+output "Bastion_Host_Public_ip" {
+  description = "Generates the Public IP of the Bastion Host"
+  value       = aws_instance.bastion_host.public_ip
 }
 
 output "bastion_sg_id" {

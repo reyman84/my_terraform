@@ -178,8 +178,8 @@ resource "aws_route_table_association" "private_rt_asso_1" {
 ## Key-Pairs ##
 ###############
 
-# --------------------- Baston Host --------------------- #
-resource "aws_key_pair" "baston_host" {
+# --------------------- Bastion Host --------------------- #
+resource "aws_key_pair" "bastion_host" {
   key_name   = "bastion-host"
   public_key = file("key-files/bastion-host.pub")
 }
