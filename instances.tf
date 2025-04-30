@@ -12,14 +12,14 @@ resource "aws_instance" "bastion_host" {
   }
 
   provisioner "file" {
-    source      = "key-files/web01"
+    source      = "key_files/web01"
     destination = "/home/ec2-user/web01"
   }
 
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = file("key-files/bastion-host")
+    private_key = file("key_files/bastion-host")
     host        = self.public_ip
   }
 
@@ -54,7 +54,7 @@ resource "aws_instance" "docker" {
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = file("key-files/bastion-host")
+    private_key = file("key_files/bastion-host")
     host        = self.public_ip
   }
 
@@ -127,7 +127,7 @@ resource "aws_instance" "web_servers" {
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = file("key-files/bastion-host")
+    private_key = file("key_files/bastion-host")
     host        = self.public_ip
   }
 
@@ -157,19 +157,19 @@ resource "aws_instance" "web_servers" {
   connection {
     type        = "ssh"
     user        = "ubuntu"
-    private_key = file("key-files/ansible") # This is your PRIVATE key
+    private_key = file("key_files/ansible") # This is your PRIVATE key
     host        = self.public_ip
   }
 
   provisioner "file" {
-    source      = "key-files/ansible"
+    source      = "key_files/ansible"
     destination = "/home/ubuntu/clientkey"
   }
 
-  provisioner "file" {
-    source      = "scripts/inventory"
-    destination = "/home/ubuntu/inventory"
-  }
+  #provisioner "file" {
+  #  source      = "scripts/inventory"
+  #  destination = "/home/ubuntu/inventory"
+  #}
 
   provisioner "file" {
     source      = "scripts/ansible.sh"
@@ -296,7 +296,7 @@ resource "null_resource" "volume_provisioner" {
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = file("key-files/bastion-host")
+    private_key = file("key_files/bastion-host")
     host        = aws_instance.jenkins_master.public_ip
   }
 
@@ -364,14 +364,14 @@ resource "null_resource" "volume_provisioner_slave" {
   }
 
   provisioner "file" {
-    source      = "key-files"
-    destination = "/home/ec2-user/key-files"
+    source      = "key_files"
+    destination = "/home/ec2-user/key_files"
   }
 
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = file("key-files/bastion-host")
+    private_key = file("key_files/bastion-host")
     host        = aws_instance.jenkins_slave.public_ip
   }
 
@@ -414,14 +414,14 @@ resource "aws_instance" "nexus" {
   }
 
   provisioner "file" {
-    source      = "key-files"
-    destination = "/home/ec2-user/key-files"
+    source      = "key_files"
+    destination = "/home/ec2-user/key_files"
   }
 
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = file("key-files/bastion-host")
+    private_key = file("key_files/bastion-host")
     host        = aws_instance.nexus.public_ip
   }
 
@@ -461,7 +461,7 @@ resource "aws_instance" "sonarqube" {
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = file("key-files/bastion-host")
+    private_key = file("key_files/bastion-host")
     host        = aws_instance.sonarqube.public_ip
   }
 
