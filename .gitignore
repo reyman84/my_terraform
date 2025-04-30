@@ -2,3 +2,9 @@ key-files/*
 .terraform/*
 .terraform.lock.hcl
 terraform.tfvars
+key_files/ansible
+key_files/ansible.pub
+key_files/bastion-host
+key_files/bastion-host.pub
+key_files/web01
+key_files/web01.pub
