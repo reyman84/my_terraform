@@ -17,6 +17,6 @@
         tags:
           Environment: Testing
       loop:
-        - { image: "ami-084568db4383264d4", name: "Managed-Node-1", subnet: "subnet-005b15df251932bac", sg: "sg-05dceec476285cec4" } # ubuntu
-        - { image: "ami-084568db4383264d4", name: "Managed-Node-2", subnet: "subnet-06f4c7e4d6436556b", sg: "sg-05dceec476285cec4" } # ubuntu
-        - { image: "ami-0f88e80871fd81e91", name: "Managed-Node-3", subnet: "subnet-03b1fc40ac860a8dc", sg: "sg-05dceec476285cec4" } # amazon_linux_2
+        - { image: "ami-084568db4383264d4", name: "Managed-Node-1", subnet: "subnet-00a7b84ad28cf28da", sg: "sg-0d6ef13ba59907d6f" } # ubuntu
+        - { image: "ami-084568db4383264d4", name: "Managed-Node-2", subnet: "subnet-011c48fa3e05f47ab", sg: "sg-0d6ef13ba59907d6f" } # ubuntu
+        - { image: "ami-0f88e80871fd81e91", name: "Managed-Node-3", subnet: "subnet-08373be493d8df018", sg: "sg-0d6ef13ba59907d6f" } # amazon_linux_2

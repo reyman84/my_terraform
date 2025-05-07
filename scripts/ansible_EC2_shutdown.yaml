@@ -2,9 +2,16 @@
 - hosts: all
   become: true
   tasks:
-    - name: Shutdown Ubuntu EC2 Instances
+    - name: gather facts
+      ansible.builtin.debug:
+        var: ansible_facts
+
+    - name: shutdown ec2 ubuntu servers
       ansible.builtin.command: /sbin/shutdown -t now
-      when: ansible_distribution == "Ubuntu"
-#    - name: Shutdown Ubuntu EC2 Instances
-#      ansible.builtin.command: /sbin/shutdown -t now
-#      when: ansible_distribution == "Amazon"
+      when: ansible_facts['os_family'] == "Debian"
+      # when: ansible_distribution == "Ubuntu"
+
+    - name: Shutdown EC2 amazon_linux server
+      ansible.builtin.command: /sbin/shutdown -t now
+      when: ansible_facts['os_family'] == "RedHat"
+      # when: ansible_distribution == "Amazon"
