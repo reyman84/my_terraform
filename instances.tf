@@ -147,7 +147,7 @@ resource "aws_instance" "web_servers" {
 
 # --------------------- Ansible Control Machine on Ubuntu ---------------------
 
-/*resource "aws_instance" "ansible_cm" {
+resource "aws_instance" "ansible_cm" {
   ami                    = var.ami["ubuntu"]
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.ansible.id
@@ -176,47 +176,40 @@ resource "aws_instance" "web_servers" {
     destination = "/home/ubuntu/ansible.sh"
   }
 
-  provisioner "remote-exec" {
-    inline = [
-      #"sudo apt-get update -y",
-      #"sudo apt-get install -y dos2unix",
-      #"dos2unix /home/ubuntu/ansible.sh",
-      "sudo chmod +x /home/ubuntu/ansible.sh",
-      "sudo sh /home/ubuntu/ansible.sh"
-    ]
+  provisioner "file" {
+    source      = "scripts/ansible_EC2_create.yaml"
+    destination = "/home/ubuntu/ansible_EC2_create.yaml"
   }
 
-  # provisioner "remote-exec" {
-  #  inline = [
-  #    # Execution as "root" user
-  #    "sudo -i -u root bash -c 'apt update -y && apt install software-properties-common -y && add-apt-repository --yes --update ppa:ansible/ansible && apt install ansible -y && ansible --version && chmod 400 /home/ubuntu/clientkey && cd /etc/ansible && mv ansible.cfg ansible.cfg_bkp && sudo ansible-config init --disabled -t all > ansible.cfg && sed -i \"s/^;host_key_checking=True/host_key_checking=False/\" ansible.cfg'",
-  # 
-  #    # Execution as "ubuntu" user with "sudo" access
-  #    "mkdir ~/vprofile && cd ~/vprofile",
-  #    "sudo apt-get update -y && sudo apt-get install -y git openssh-client",
-  #    "ssh-keyscan github.com >> ~/.ssh/known_hosts",
-  #    "git clone https://github.com/reyman84/ansible.git"
-  #  ]
-  #}
+  provisioner "remote-exec" {
+    inline = [
+      "sudo apt-get update -y",
+      "sudo apt-get install -y dos2unix",
+      "dos2unix /home/ubuntu/ansible.sh",
+      "sudo chmod +x /home/ubuntu/ansible.sh",
+      "sudo sh /home/ubuntu/ansible.sh",
+      "sudo ansible-galaxy collection install amazon.aws --force"
+    ]
+  }
 
   tags = {
     Name = "Ansible Control Machine"
   }
-}*/
+}
 
 # --------------------- Ansible Host on 2 different AMIs ---------------------
 
 /*locals {
   instances = {
-    "Amazon_Linux-Ansible" = var.ami["amazon_linux_2"]
-    "Ubuntu-Ansible"       = var.ami["ubuntu"]
+    "Host - Amazon_Linux" = var.ami["amazon_linux_2"]
+    "Host - Ubuntu"       = var.ami["ubuntu"]
   }
 }
 
 locals {
   subnet_id = {
-    "Amazon_Linux-Ansible" = aws_subnet.public_subnet_1a.id
-    "Ubuntu-Ansible"       = aws_subnet.public_subnet_1b.id
+    "Host - Amazon_Linux" = aws_subnet.public_subnet_1a.id
+    "Host - Ubuntu"       = aws_subnet.public_subnet_1b.id
   }
 }
 
