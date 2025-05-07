@@ -1,0 +1,10 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Shutdown Ubuntu EC2 Instances
+      ansible.builtin.command: /sbin/shutdown -t now
+      when: ansible_distribution == "Ubuntu"
+#    - name: Shutdown Ubuntu EC2 Instances
+#      ansible.builtin.command: /sbin/shutdown -t now
+#      when: ansible_distribution == "Amazon"
