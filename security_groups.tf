@@ -6,7 +6,7 @@
 # SSH from my IP (For Bastion host, Ansible Controll Machine, Jenkins Master)
 
 resource "aws_security_group" "bastion_host" {
-  name        = "Baston_Host"
+  name        = "Bastion_Host"
   description = "Allow SSH connection from Trusted IP"
   vpc_id      = aws_vpc.vpc.id
 
@@ -27,15 +27,14 @@ resource "aws_security_group" "bastion_host" {
     ipv6_cidr_blocks = ["::/0"]
   }
   tags = {
-    Name = "Baston_Host"
+    Name = "Bastion_Host"
   }
 }
 
 # --------------------- Security Group Ansible-host (port 22 from bastion host) --------------------- #
-# To do SSH from Bastion Host (For Ansible Host, Jenkins Slave)
 
 resource "aws_security_group" "ssh_from_bastion_host" {
-  name        = "Ansible host - ssh_from_bastion_host"
+  name        = "SSH_from_bastion_host"
   description = "Allow port 22 from bastion host"
   vpc_id      = aws_vpc.vpc.id
 
@@ -49,11 +48,11 @@ resource "aws_security_group" "ssh_from_bastion_host" {
   }
 
   tags = {
-    Name = "Ansible host - ssh_from_bastion_host"
+    Name = "SSH_from_bastion_host"
   }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_22_from_Baston_Host" {
+resource "aws_vpc_security_group_ingress_rule" "allow_22_from_bastion_host" {
   description                  = "Allow SSH from Bastion Host"
   from_port                    = 22
   to_port                      = 22
@@ -234,7 +233,7 @@ resource "aws_security_group" "web01" {
   }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_SSH_from_Baston_Host" {
+resource "aws_vpc_security_group_ingress_rule" "allow_SSH_from_bastion_host" {
   description                  = "Allow SSH from Bastion Host"
   from_port                    = 22
   to_port                      = 22
