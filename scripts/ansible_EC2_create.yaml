@@ -1,0 +1,22 @@
+- hosts: localhost
+  connection: local
+  tasks:
+    - name: Start an EC2 instance with public IP
+      amazon.aws.ec2_instance:
+        name: "{{ item.name }}"
+        instance_type: t2.micro
+        image_id: "{{ item.image }}"
+        region: us-east-1
+        key_name: "ansible"
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+        vpc_subnet_id: "{{item.subnet}}"
+        security_group: "{{item.sg}}"
+        network:
+          assign_public_ip: true
+        tags:
+          Environment: Testing
+      loop:
+        - { image: "ami-084568db4383264d4", name: "Managed-Node-1", subnet: "subnet-005b15df251932bac", sg: "sg-05dceec476285cec4" } # ubuntu
+        - { image: "ami-084568db4383264d4", name: "Managed-Node-2", subnet: "subnet-06f4c7e4d6436556b", sg: "sg-05dceec476285cec4" } # ubuntu
+        - { image: "ami-0f88e80871fd81e91", name: "Managed-Node-3", subnet: "subnet-03b1fc40ac860a8dc", sg: "sg-05dceec476285cec4" } # amazon_linux_2
