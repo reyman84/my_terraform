@@ -1,7 +1,8 @@
 - hosts: localhost
   connection: local
+  gather_facts: false
   tasks:
-    - name: Start an EC2 instance with public IP
+    - name: Start EC2 instances with public IPs
       amazon.aws.ec2_instance:
         name: "{{ item.name }}"
         instance_type: t2.micro
@@ -10,13 +11,26 @@
         key_name: "ansible"
         aws_access_key: "{{ aws_access_key }}"
         aws_secret_key: "{{ aws_secret_key }}"
-        vpc_subnet_id: "{{item.subnet}}"
-        security_group: "{{item.sg}}"
+        vpc_subnet_id: "{{ item.subnet }}"
+        security_group: "{{ item.sg }}"
         network:
           assign_public_ip: true
         tags:
+          Name: "{{ item.name }}"
           Environment: Testing
+        wait: true
       loop:
-        - { image: "ami-084568db4383264d4", name: "Managed-Node-1", subnet: "subnet-00a7b84ad28cf28da", sg: "sg-0d6ef13ba59907d6f" } # ubuntu
-        - { image: "ami-084568db4383264d4", name: "Managed-Node-2", subnet: "subnet-011c48fa3e05f47ab", sg: "sg-0d6ef13ba59907d6f" } # ubuntu
-        - { image: "ami-0f88e80871fd81e91", name: "Managed-Node-3", subnet: "subnet-08373be493d8df018", sg: "sg-0d6ef13ba59907d6f" } # amazon_linux_2
+        - { image: "ami-084568db4383264d4", name: "Managed-Node-1", subnet: "subnet-00a7b84ad28cf28da", sg: "sg-0d6ef13ba59907d6f" }
+        - { image: "ami-084568db4383264d4", name: "Managed-Node-2", subnet: "subnet-011c48fa3e05f47ab", sg: "sg-0d6ef13ba59907d6f" }
+        - { image: "ami-0f88e80871fd81e91", name: "Managed-Node-3", subnet: "subnet-08373be493d8df018", sg: "sg-0d6ef13ba59907d6f" }
+      register: ec2_results
+
+    - name: Print EC2 instance details
+      debug:
+        msg: |
+          Instance Name: {{ item.instances[0].tags.Name | default('N/A') }}
+          Public IP: {{ item.instances[0].public_ip_address | default('N/A') }}
+          Private IP: {{ item.instances[0].private_ip_address | default('N/A') }}
+      loop: "{{ ec2_results.results }}"
+      loop_control:
+        label: "{{ item.instances[0].instance_id }}"
