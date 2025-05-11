@@ -176,11 +176,6 @@ resource "aws_instance" "ansible_cm" {
     destination = "/home/ubuntu/ansible.sh"
   }
 
-  provisioner "file" {
-    source      = "scripts/ansible_EC2_create.yaml"
-    destination = "/home/ubuntu/ansible_EC2_create.yaml"
-  }
-
   provisioner "remote-exec" {
     inline = [
       "sudo apt-get update -y",
