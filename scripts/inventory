@@ -2,19 +2,19 @@ all:
   hosts:
     web01:
       ansible_host: 10.0.10.144
-      ansible_user: ec2-user
-    #web02:
-    #  ansible_host:
-    #  ansible_user: 
-    db01:
-      ansible_host: 10.0.20.244
       ansible_user: ubuntu
+    web02:
+      ansible_host: 10.0.20.232
+      ansible_user: ubuntu
+    db01:
+      ansible_host: 10.0.30.244
+      ansible_user: ec2-user
 
   children:
     webservers:
       hosts:
         web01:
-        #web02:
+        web02:
 
     dbservers:
       hosts:
