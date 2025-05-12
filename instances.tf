@@ -47,7 +47,7 @@ resource "aws_instance" "docker" {
   }
 
   provisioner "file" {
-    source      = "scripts/docker.sh"
+    source      = "installation_scripts/docker.sh"
     destination = "/home/ec2-user/docker.sh"
   }
 
@@ -167,12 +167,12 @@ resource "aws_instance" "ansible_cm" {
   }
 
   #provisioner "file" {
-  #  source      = "scripts/inventory"
+  #  source      = "installation_scripts/inventory"
   #  destination = "/home/ubuntu/inventory"
   #}
 
   provisioner "file" {
-    source      = "scripts/ansible.sh"
+    source      = "installation_scripts/ansible.sh"
     destination = "/home/ubuntu/ansible.sh"
   }
 
@@ -277,7 +277,7 @@ resource "null_resource" "volume_provisioner" {
   depends_on = [aws_volume_attachment.jenkins_master_attachment]
 
   provisioner "file" {
-    source      = "scripts/jenkins_master.sh"
+    source      = "installation_scripts/jenkins_master.sh"
     destination = "/home/ec2-user/jenkins_master.sh"
   }
 
@@ -347,7 +347,7 @@ resource "null_resource" "volume_provisioner_slave" {
 
 
   provisioner "file" {
-    source      = "scripts/jenkins_slave.sh"
+    source      = "installation_scripts/jenkins_slave.sh"
     destination = "/home/ec2-user/jenkins_slave.sh"
   }
 
@@ -397,7 +397,7 @@ resource "aws_instance" "nexus" {
   }
 
   provisioner "file" {
-    source      = "scripts/nexus-setup.sh"
+    source      = "installation_scripts/nexus-setup.sh"
     destination = "/home/ec2-user/nexus-setup.sh"
   }
 
@@ -442,7 +442,7 @@ resource "aws_instance" "sonarqube" {
   }
 
   provisioner "file" {
-    source      = "scripts/sonar-setup.sh"
+    source      = "installation_scripts/sonar-setup.sh"
     destination = "/home/ec2-user/sonar-setup.sh"
   }
 
