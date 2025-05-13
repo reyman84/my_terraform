@@ -3,6 +3,15 @@
   value       = aws_instance.jenkins_master.public_ip
 }
 
+output "nexus" {
+  description = "Public IPs of Jenkins Master"
+  value       = aws_instance.nexus.public_ip
+}
+output "sonarqube" {
+  description = "Public IPs of Jenkins Master"
+  value       = aws_instance.sonarqube.public_ip
+}
+
 output "Jenkins_Slave" {
   description = "Public IPs of Jenkins Slave"
   value       = aws_instance.jenkins_slave.public_ip
@@ -50,9 +59,9 @@ output "Ansible_Hosts_Private_ips" {
     for name, inst in aws_instance.ansible_hosts :
     name => inst.private_ip
   }
-}*/
+}
 
 output "Ansible_CM_Public_ip" {
   description = "Generates the Public IP of docker"
   value       = aws_instance.ansible_cm.public_ip
-}
+}*/
