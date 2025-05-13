@@ -147,7 +147,7 @@ resource "aws_instance" "web_servers" {
 
 # --------------------- Ansible Control Machine on Ubuntu ---------------------
 
-resource "aws_instance" "ansible_cm" {
+/*resource "aws_instance" "ansible_cm" {
   ami                    = var.ami["ubuntu"]
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.ansible.id
@@ -190,7 +190,7 @@ resource "aws_instance" "ansible_cm" {
   tags = {
     Name = "Ansible Control Machine"
   }
-}
+}*/
 
 # --------------------- Ansible Host on 2 different AMIs ---------------------
 
@@ -229,19 +229,12 @@ resource "aws_instance" "ansible_hosts" {
 }*/
 
 # --------------------- Jenkins Master ---------------------
-/*
-Creating jenkins Master slave archiecture from scratch
-Things pending:
-1. Jenkins Master configuration on browser
-2. Adding AWS credentials
-3. Adding nodes
-*/
 
 /*resource "aws_instance" "jenkins_master" {
-  ami           = var.ami["amazon_linux_2"]
+  ami           = var.ami["jenkins_master"] # Basic Jenkins installation
   instance_type = "t2.micro"
   key_name      = aws_key_pair.bastion_host.id
-  subnet_id     = aws_subnet.public_subnet_1b.id
+  subnet_id     = aws_subnet.public_subnet_1c.id
 
   vpc_security_group_ids = [
     aws_security_group.bastion_host.id,
@@ -250,57 +243,6 @@ Things pending:
 
   tags = {
     Name = "Jenkins_Master"
-  }
-}
-
-# Create an additional EBS volume
-resource "aws_ebs_volume" "jenkins_master_volume" {
-  availability_zone = aws_instance.jenkins_master.availability_zone
-  size              = 2
-  type              = "gp2"
-
-  tags = {
-    Name = "/tmp - jenkins master"
-  }
-}
-
-# 2. Attach the EBS volume to the Jenkins master instance
-resource "aws_volume_attachment" "jenkins_master_attachment" {
-  device_name  = "/dev/sdf"
-  volume_id    = aws_ebs_volume.jenkins_master_volume.id
-  instance_id  = aws_instance.jenkins_master.id
-  force_detach = true
-}
-
-# Run commands when the volume is attached using remote-exec provisioner
-resource "null_resource" "volume_provisioner" {
-  depends_on = [aws_volume_attachment.jenkins_master_attachment]
-
-  provisioner "file" {
-    source      = "installation_scripts/jenkins_master.sh"
-    destination = "/home/ec2-user/jenkins_master.sh"
-  }
-
-  connection {
-    type        = "ssh"
-    user        = "ec2-user"
-    private_key = file("key_files/bastion-host")
-    host        = aws_instance.jenkins_master.public_ip
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo mkfs.ext4 /dev/xvdf",
-      "sudo mount /dev/xvdf /tmp",
-      "sudo -i -u root bash -c 'echo \"/dev/xvdf  /tmp  ext4  defaults,nofail  0  2\" >> /etc/fstab'",
-      "mount -a",
-      "df -h /tmp",
-      "sudo yum install -y dos2unix",
-      "dos2unix /home/ec2-user/jenkins_master.sh",
-      "sudo chmod 755 /home/ec2-user/jenkins_master.sh",
-      "sudo sh /home/ec2-user/jenkins_master.sh",
-      "sudo reboot"
-    ]
   }
 }*/
 
@@ -380,86 +322,38 @@ resource "null_resource" "volume_provisioner_slave" {
 }*/
 
 # --------------------- Nexus Setup ---------------------
-/*
-resource "aws_instance" "nexus" {
-  ami           = var.ami["amazon_linux_2"]
-  instance_type = "t2.micro"
+
+/*resource "aws_instance" "nexus" {
+  ami           = var.ami["nexus"] # Nexus Setup on top of Amazon AMI
+  instance_type = "t2.medium"
   key_name      = aws_key_pair.bastion_host.id
   subnet_id     = aws_subnet.public_subnet_1b.id
 
   vpc_security_group_ids = [
     aws_security_group.bastion_host.id,
-    aws_security_group.nexus.id
+    aws_security_group.nexus_sg.id
   ]
 
   tags = {
-    Name = "Nexus Server"
+    Name = "Nexus"
   }
 
-  provisioner "file" {
-    source      = "installation_scripts/nexus-setup.sh"
-    destination = "/home/ec2-user/nexus-setup.sh"
-  }
-
-  provisioner "file" {
-    source      = "key_files"
-    destination = "/home/ec2-user/key_files"
-  }
-
-  connection {
-    type        = "ssh"
-    user        = "ec2-user"
-    private_key = file("key_files/bastion-host")
-    host        = aws_instance.nexus.public_ip
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo yum install -y dos2unix",
-      "sudo dos2unix /home/ec2-user/nexus-setup.sh",
-      "sudo chmod 755 /home/ec2-user/nexus-setup.sh",
-      "sudo sh /home/ec2-user/nexus-setup.sh",
-      "sudo reboot"
-    ]
-  }
 }
 
 # --------------------- Sonarqube Setup ---------------------
 
 resource "aws_instance" "sonarqube" {
-  ami           = var.ami["ubuntu"]
-  instance_type = "t2.micro"
+  ami           = var.ami["sonarqube"] # SonarQube Setup on top of Ubuntu AMI
+  instance_type = "t2.medium"
   key_name      = aws_key_pair.bastion_host.id
   subnet_id     = aws_subnet.public_subnet_1b.id
 
   vpc_security_group_ids = [
-    aws_security_group.bastion_host.id
-    #aws_security_group.nexus.id
+    aws_security_group.bastion_host.id,
+    aws_security_group.sonar_sg.id
   ]
 
   tags = {
-    Name = "sonarqube Server"
-  }
-
-  provisioner "file" {
-    source      = "installation_scripts/sonar-setup.sh"
-    destination = "/home/ec2-user/sonar-setup.sh"
-  }
-
-  connection {
-    type        = "ssh"
-    user        = "ec2-user"
-    private_key = file("key_files/bastion-host")
-    host        = aws_instance.sonarqube.public_ip
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo yum install -y dos2unix",
-      "sudo dos2unix /home/ec2-user/sonar-setup.sh",
-      "sudo chmod 755 /home/ec2-user/sonar-setup.sh",
-      "sudo sh /home/ec2-user/sonar-setup.sh",
-      "sudo reboot"
-    ]
+    Name = "Sonarqube Server"
   }
 }*/
