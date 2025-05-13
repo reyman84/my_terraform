@@ -94,15 +94,8 @@ resource "aws_vpc_security_group_ingress_rule" "allow_22_from_bastion_host" {
     Name = "ALB_SG"
   }
 }*/
-resource "aws_security_group" "sonar_sg" {
-  name        = "sonarqube-sg"
-  description = "SG for SonarQube"
-  vpc_id      = aws_vpc.vpc.id
 
-  tags = {
-    Name = "sonarqube-sg"
-  }
-}
+# --------------------- Security Group Jenkins, SonarQube and Nexus --------------------- #
 
 resource "aws_security_group" "jenkins_master" {
   name        = "jenkins-master-sg"
@@ -111,6 +104,16 @@ resource "aws_security_group" "jenkins_master" {
 
   tags = {
     Name = "jenkins-master-sg"
+  }
+}
+
+resource "aws_security_group" "sonar_sg" {
+  name        = "sonarqube-sg"
+  description = "SG for SonarQube"
+  vpc_id      = aws_vpc.vpc.id
+
+  tags = {
+    Name = "sonarqube-sg"
   }
 }
 
@@ -215,7 +218,6 @@ resource "aws_security_group_rule" "egress_all_nexus" {
   ipv6_cidr_blocks  = ["::/0"]
   security_group_id = aws_security_group.nexus_sg.id
 }
-
 
 # --------------------- Security Group Web Server --------------------- #
 
