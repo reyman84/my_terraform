@@ -137,7 +137,7 @@ resource "aws_nat_gateway" "nat" {
   tags = {
     Name = "Terraform - NAT"
   }
-}*/
+}
 
 resource "aws_subnet" "private_subnet_1a" {
   vpc_id                  = aws_vpc.vpc.id
@@ -169,7 +169,7 @@ resource "aws_subnet" "private_subnet_1c" {
   }
 }
 
-/*resource "aws_subnet" "private_subnet_1d" {
+resource "aws_subnet" "private_subnet_1d" {
   vpc_id                  = aws_vpc.vpc.id
   cidr_block              = var.private_subnet["1d"]
   availability_zone       = var.zone["1d"]
@@ -197,7 +197,7 @@ resource "aws_subnet" "private_subnet_1f" {
   tags = {
     Name = "Private Subnet 1f"
   }
-}*/
+}
 
 resource "aws_route_table" "private_rt" {
   vpc_id = aws_vpc.vpc.id
@@ -225,7 +225,7 @@ resource "aws_route_table_association" "private_rt_asso_3" {
   route_table_id = aws_route_table.private_rt.id
 }
 
-/*resource "aws_route_table_association" "private_rt_asso_4" {
+resource "aws_route_table_association" "private_rt_asso_4" {
   subnet_id      = aws_subnet.private_subnet_1d.id
   route_table_id = aws_route_table.private_rt.id
 }
