@@ -9,8 +9,9 @@ resource "aws_vpc" "vpc" {
   }
 }
 
-####################### Public  Resources #######################
-# internet Gateway / Subnet / Route Table / Route Table Association
+######################## Public  Resources ##########################
+# Internet Gateway / Subnet / Route Table / Route Table Association #
+#####################################################################
 
 resource "aws_internet_gateway" "igt" {
   vpc_id = aws_vpc.vpc.id
@@ -120,11 +121,13 @@ resource "aws_route_table_association" "public_rt_asso_6" {
   route_table_id = aws_route_table.public_rt.id
 }*/
 
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#  Caution Don't Launch Private Resources without Permission #
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# #################### Private  Resources ################### #
+# EIP / NAT / Subnets / Route Table / Route Table Association #
+# ########################################################### #
 
-######## Private  Resources ######## EIP/ NAT / Subnets / Route Table / Route Table Association
+                                   # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ #
+                                   #  Caution Don't Launch Private Resources without Permission #
+                                   # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ #
 
 /*resource "aws_eip" "eip" {
   tags = { Name = "Terraform - EIP" }
