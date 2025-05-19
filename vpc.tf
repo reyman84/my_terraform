@@ -7,6 +7,9 @@ resource "aws_vpc" "vpc" {
   tags = {
     Name = "Terraform - VPC"
   }
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 ######################## Public  Resources ##########################
