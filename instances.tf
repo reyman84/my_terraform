@@ -232,8 +232,8 @@ resource "aws_instance" "ansible_hosts" {
 
 /*resource "aws_instance" "jenkins_master" {
   ami           = var.ami["jenkins_master"] # Basic Jenkins installation
-  instance_type = "t2.micro"
-  key_name      = aws_key_pair.bastion_host.id
+  instance_type = "t2.small"
+  key_name      = aws_key_pair.jenkins_master.id
   subnet_id     = aws_subnet.public_subnet_1c.id
 
   vpc_security_group_ids = [
@@ -251,7 +251,7 @@ resource "aws_instance" "ansible_hosts" {
 /*resource "aws_instance" "jenkins_slave" {
   ami           = var.ami["amazon_linux_2"]
   instance_type = "t2.micro"
-  key_name      = aws_key_pair.bastion_host.id
+  key_name      = aws_key_pair.jenkins_slave.id
   subnet_id     = aws_subnet.public_subnet_1b.id
 
   vpc_security_group_ids = [
@@ -293,15 +293,15 @@ resource "null_resource" "volume_provisioner_slave" {
     destination = "/home/ec2-user/jenkins_slave.sh"
   }
 
-  provisioner "file" {
-    source      = "key_files"
-    destination = "/home/ec2-user/key_files"
-  }
+  #provisioner "file" {
+  #  source      = "key_files"
+  #  destination = "/home/ec2-user/key_files"
+  #}
 
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = file("key_files/bastion-host")
+    private_key = file("key_files/jenkins_slave")
     host        = aws_instance.jenkins_slave.public_ip
   }
 
@@ -327,7 +327,7 @@ resource "null_resource" "volume_provisioner_slave" {
   ami           = var.ami["nexus"] # Nexus Setup on top of Amazon AMI
   instance_type = "t2.medium"
   key_name      = aws_key_pair.bastion_host.id
-  subnet_id     = aws_subnet.public_subnet_1b.id
+  subnet_id     = aws_subnet.public_subnet_1c.id
 
   vpc_security_group_ids = [
     aws_security_group.bastion_host.id,
@@ -338,11 +338,11 @@ resource "null_resource" "volume_provisioner_slave" {
     Name = "Nexus"
   }
 
-}
+}*/
 
 # --------------------- Sonarqube Setup ---------------------
 
-resource "aws_instance" "sonarqube" {
+/*resource "aws_instance" "sonarqube" {
   ami           = var.ami["sonarqube"] # SonarQube Setup on top of Ubuntu AMI
   instance_type = "t2.medium"
   key_name      = aws_key_pair.bastion_host.id
