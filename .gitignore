@@ -10,3 +10,7 @@ key_files/web01
 key_files/web01.pub
 outputs.tf
 /c/Users/Admin/Desktop/my_terraform/outputs.tf
+key_files/jenkins_master
+key_files/jenkins_master.pub
+key_files/jenkins_slave
+key_files/jenkins_slave.pub
