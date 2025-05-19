@@ -34,7 +34,7 @@ resource "aws_security_group" "bastion_host" {
 
 # --------------------- Security Group Ansible-host (port 22 from bastion host) --------------------- #
 
-/*resource "aws_security_group" "ssh_from_bastion_host" {
+resource "aws_security_group" "ssh_from_bastion_host" {
   name        = "SSH_from_bastion_host"
   description = "Allow port 22 from bastion host"
   vpc_id      = aws_vpc.vpc.id
@@ -64,11 +64,11 @@ resource "aws_vpc_security_group_ingress_rule" "allow_22_from_bastion_host" {
   tags = {
     Name = "Allow SSH from Bastion Host"
   }
-}*/
+}
 
 # --------------------- ALB Security Group (Only Port 80 from anywhere) --------------------- #
 
-/*resource "aws_security_group" "http" {
+resource "aws_security_group" "http" {
   name        = "ALB_SG"
   description = "Allow HTTP from anywhere"
   vpc_id      = aws_vpc.vpc.id
@@ -93,7 +93,7 @@ resource "aws_vpc_security_group_ingress_rule" "allow_22_from_bastion_host" {
   tags = {
     Name = "ALB_SG"
   }
-}*/
+}
 
 # --------------------- Security Group Jenkins, SonarQube and Nexus --------------------- #
 
@@ -221,7 +221,7 @@ resource "aws_security_group_rule" "egress_all_nexus" {
 
 # --------------------- Security Group Web Server --------------------- #
 
-/*resource "aws_security_group" "web01" {
+resource "aws_security_group" "web01" {
   name        = "Web_Server"
   description = "Allow HTTP and SSH inbound traffic and all outbound traffic"
   vpc_id      = aws_vpc.vpc.id
@@ -264,11 +264,11 @@ resource "aws_vpc_security_group_ingress_rule" "allow_HTTP_from_ALB_SG" {
   tags = {
     Name = "Allow HTTP from ALB"
   }
-}*/
+}
 
 # --------------------- Allow All Traffic from anywhere --------------------- #
 
-/*resource "aws_security_group" "All_Traffic_enabled" {
+resource "aws_security_group" "All_Traffic_enabled" {
   name        = "All_Traffic_Enabled"
   description = "Allow all traffic from anywhere"
   vpc_id      = aws_vpc.vpc.id
@@ -294,4 +294,4 @@ resource "aws_vpc_security_group_ingress_rule" "allow_HTTP_from_ALB_SG" {
   tags = {
     Name = "All - Traffic_Enabled"
   }
-}*/
+}
