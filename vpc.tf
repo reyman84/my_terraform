@@ -125,9 +125,9 @@ resource "aws_route_table_association" "public_rt_asso_6" {
 # EIP / NAT / Subnets / Route Table / Route Table Association #
 # ########################################################### #
 
-                                   # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ #
-                                   #  Caution Don't Launch Private Resources without Permission #
-                                   # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ #
+#                                 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+#                                  Caution Don't Launch Private Resources without Permission 
+#                                 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ 
 
 /*resource "aws_eip" "eip" {
   tags = { Name = "Terraform - EIP" }
@@ -263,4 +263,16 @@ resource "aws_key_pair" "web01" {
 resource "aws_key_pair" "ansible" {
   key_name   = "ansible"
   public_key = file("key_files/ansible.pub")
+}
+
+# --------------------- Jenkins Master --------------------- #
+resource "aws_key_pair" "jenkins_master" {
+  key_name   = "jenkins_master"
+  public_key = file("key_files/jenkins_master.pub")
+}
+
+# --------------------- Jenkins Slave --------------------- #
+resource "aws_key_pair" "jenkins_slave" {
+  key_name   = "jenkins_slave"
+  public_key = file("key_files/jenkins_slave.pub")
 }
