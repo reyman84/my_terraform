@@ -2,6 +2,11 @@ variable "region" {
   description = "Provides the AWS region to implement changes"
 }
 
+variable "vpc_cidr" {
+  description = "Map of private subnets"
+  type        = string
+}
+
 variable "trusted_ip" {
   description = "IP address of my Laptop's IP"
 }
