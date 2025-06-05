@@ -2,7 +2,7 @@
 /*
 resource "aws_instance" "bastion_host" {
   instance_type          = "t2.micro"
-  ami                    = var.ami["amazon_linux_2"]
+  ami                    = data.aws_ami.linux.id
   key_name               = aws_key_pair.bastion_host.id
   subnet_id              = aws_subnet.public_subnet_1a.id
   vpc_security_group_ids = [aws_security_group.bastion_host.id]
@@ -34,7 +34,7 @@ resource "aws_instance" "bastion_host" {
 /*
 resource "aws_instance" "docker" {
   instance_type = "t2.medium"               # t2-medium is "Chargeable"
-  ami           = var.ami["amazon_linux_2"]
+  ami           = data.aws_ami.linux.id
   key_name      = aws_key_pair.bastion_host.id
   subnet_id     = aws_subnet.public_subnet_1a.id
   vpc_security_group_ids = [
@@ -74,7 +74,7 @@ resource "aws_instance" "docker" {
 resource "aws_instance" "web_servers" {
   #for_each      = aws_subnet.private_subnets
   count         = var.unstable_instance_count
-  ami           = var.ami["amazon_linux_2"]
+  ami           = data.aws_ami.linux.id
   instance_type = "t2.micro"
   key_name      = aws_key_pair.web01.id
   subnet_id = element([
@@ -111,7 +111,7 @@ resource "aws_instance" "web_servers" {
 
 /*resource "aws_instance" "manual_roject_sql" {
   instance_type = "t2.micro"
-  ami           = var.ami["amazon_linux_2"]
+  ami           = data.aws_ami.linux.id
   key_name      = aws_key_pair.bastion_host.id
   subnet_id     = aws_subnet.public_subnet_1a.id
 
@@ -148,7 +148,7 @@ resource "aws_instance" "web_servers" {
 # --------------------- Ansible Control Machine on Ubuntu ---------------------
 
 /*resource "aws_instance" "ansible_cm" {
-  ami                    = var.ami["ubuntu"]
+  ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.ansible.id
   subnet_id              = aws_subnet.public_subnet_1c.id
@@ -196,8 +196,8 @@ resource "aws_instance" "web_servers" {
 
 /*locals {
   instances = {
-    "Host - Amazon_Linux" = var.ami["amazon_linux_2"]
-    "Host - Ubuntu"       = var.ami["ubuntu"]
+    "Host - Amazon_Linux" = data.aws_ami.linux.id
+    "Host - Ubuntu"       = data.aws_ami.ubuntu.id
   }
 }
 
@@ -249,7 +249,7 @@ resource "aws_instance" "ansible_hosts" {
 # --------------------- Jenkins Slave ---------------------
 
 /*resource "aws_instance" "jenkins_slave" {
-  ami           = var.ami["amazon_linux_2"]
+  ami           = data.aws_ami.linux.id
   instance_type = "t2.micro"
   key_name      = aws_key_pair.jenkins_slave.id
   subnet_id     = aws_subnet.public_subnet_1b.id
