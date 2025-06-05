@@ -1,15 +1,5 @@
 .terraform/*
 .terraform.lock.hcl
 terraform.tfvars
-key_files/ansible
-key_files/ansible.pub
-key_files/bastion-host
-key_files/bastion-host.pub
-key_files/web01
-key_files/web01.pub
-key_files/jenkins_master
-key_files/jenkins_master.pub
-key_files/jenkins_slave
-key_files/jenkins_slave.pub
+key_files/*
 outputs.tf
-/c/Users/Admin/Desktop/my_terraform/outputs.tf
