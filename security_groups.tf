@@ -33,6 +33,7 @@ resource "aws_security_group" "bastion_host" {
 }
 
 # --------------------- Security Group - Ansible-host (port 22 from bastion host) --------------------- #
+# For doing SSH from Ansible Controller Machine to Ansible Hosts
 
 /*resource "aws_security_group" "ssh_from_bastion_host" {
   name        = "SSH_from_bastion_host"
@@ -66,7 +67,7 @@ resource "aws_vpc_security_group_ingress_rule" "allow_22_from_bastion_host" {
   }
 }*/
 
-# --------------------- ALB Security Group - (Only Port 80 from anywhere) --------------------- #
+# --------------------- Load Balancer SG - (Only Port 80 from anywhere) --------------------- #
 
 /*resource "aws_security_group" "http" {
   name        = "ALB_SG"
