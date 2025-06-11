@@ -19,7 +19,7 @@ resource "aws_lb" "web_alb" {
   internal                   = false # public alb
   load_balancer_type         = "application"
   security_groups            = [aws_security_group.http.id] # only port 80 from anywhere
-  subnets                    = [aws_subnet.public_subnet_1a.id, aws_subnet.public_subnet_1b.id]
+  subnets                    = [aws_subnet.public["1a"].id, aws_subnet.public["1b"].id]
   enable_deletion_protection = false
 }
 

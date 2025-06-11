@@ -1,10 +1,10 @@
 # --------------------- Bastion Host ---------------------
-/*
-resource "aws_instance" "bastion_host" {
+
+/*resource "aws_instance" "bastion_host" {
   instance_type          = "t2.micro"
   ami                    = data.aws_ami.linux.id
   key_name               = aws_key_pair.bastion_host.id
-  subnet_id              = aws_subnet.public_subnet_1a.id
+  subnet_id              = aws_subnet.public["1a"].id
   vpc_security_group_ids = [aws_security_group.bastion_host.id]
 
   tags = {
@@ -31,12 +31,12 @@ resource "aws_instance" "bastion_host" {
 }*/
 
 # --------------------- Docker & GIT on Amazon-Linux-2 ---------------------
-/*
-resource "aws_instance" "docker" {
+
+/*resource "aws_instance" "docker" {
   instance_type = "t2.medium"               # t2-medium is "Chargeable"
   ami           = data.aws_ami.linux.id
   key_name      = aws_key_pair.bastion_host.id
-  subnet_id     = aws_subnet.public_subnet_1a.id
+  subnet_id     = aws_subnet.public["1a"].id
   vpc_security_group_ids = [
     aws_security_group.bastion_host.id,
     aws_security_group.http.id
@@ -70,17 +70,17 @@ resource "aws_instance" "docker" {
 }*/
 
 # --------------------- Web Server ---------------------
-/*
-resource "aws_instance" "web_servers" {
+
+/*resource "aws_instance" "web_servers" {
   #for_each      = aws_subnet.private_subnets
-  count         = var.unstable_instance_count
+  count         = var.instance_count.unstable
   ami           = data.aws_ami.linux.id
   instance_type = "t2.micro"
   key_name      = aws_key_pair.web01.id
   subnet_id = element([
-    aws_subnet.public_subnet_1a.id,
-    aws_subnet.public_subnet_1b.id,
-    aws_subnet.public_subnet_1c.id
+    aws_subnet.public["1a"].id,
+    aws_subnet.public["1b"].id,
+    aws_subnet.public["1"].id
   ], count.index)
 
   # This security group should all traffic on port 80
@@ -108,12 +108,11 @@ resource "aws_instance" "web_servers" {
 # --------------------- Manual-Project ---------------------
 # --------------------- MYSQL / Mariadb ---------------------
 
-
-/*resource "aws_instance" "manual_roject_sql" {
+/*resource "aws_instance" "manual_project_sql" {
   instance_type = "t2.micro"
   ami           = data.aws_ami.linux.id
   key_name      = aws_key_pair.bastion_host.id
-  subnet_id     = aws_subnet.public_subnet_1a.id
+  subnet_id     = aws_subnet.public["1a"].id
 
   vpc_security_group_ids = [
     aws_security_group.bastion_host.id,
@@ -151,7 +150,7 @@ resource "aws_instance" "web_servers" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.ansible.id
-  subnet_id              = aws_subnet.public_subnet_1c.id
+  subnet_id              = aws_subnet.public["1c"].id
   vpc_security_group_ids = [aws_security_group.bastion_host.id]
 
   connection {
@@ -203,8 +202,8 @@ resource "aws_instance" "web_servers" {
 
 locals {
   subnet_id = {
-    "Host - Amazon_Linux" = aws_subnet.public_subnet_1a.id
-    "Host - Ubuntu"       = aws_subnet.public_subnet_1b.id
+    "Host - Amazon_Linux" = aws_subnet.public["1a"].id
+    "Host - Ubuntu"       = aws_subnet.public["1b"].id
   }
 }
 
@@ -234,7 +233,7 @@ resource "aws_instance" "ansible_hosts" {
   ami           = var.ami["jenkins_master"] # Basic Jenkins installation
   instance_type = "t2.small"
   key_name      = aws_key_pair.jenkins_master.id
-  subnet_id     = aws_subnet.public_subnet_1c.id
+  subnet_id     = aws_subnet.public["1c"].id
 
   vpc_security_group_ids = [
     aws_security_group.bastion_host.id,
@@ -252,7 +251,7 @@ resource "aws_instance" "ansible_hosts" {
   ami           = data.aws_ami.linux.id
   instance_type = "t2.micro"
   key_name      = aws_key_pair.jenkins_slave.id
-  subnet_id     = aws_subnet.public_subnet_1b.id
+  subnet_id     = aws_subnet.public["1b"].id
 
   vpc_security_group_ids = [
     aws_security_group.bastion_host.id,
@@ -327,7 +326,7 @@ resource "null_resource" "volume_provisioner_slave" {
   ami           = var.ami["nexus"] # Nexus Setup on top of Amazon AMI
   instance_type = "t2.medium"
   key_name      = aws_key_pair.bastion_host.id
-  subnet_id     = aws_subnet.public_subnet_1c.id
+  subnet_id     = aws_subnet.public["1c"].id
 
   vpc_security_group_ids = [
     aws_security_group.bastion_host.id,
@@ -346,7 +345,7 @@ resource "null_resource" "volume_provisioner_slave" {
   ami           = var.ami["sonarqube"] # SonarQube Setup on top of Ubuntu AMI
   instance_type = "t2.medium"
   key_name      = aws_key_pair.bastion_host.id
-  subnet_id     = aws_subnet.public_subnet_1b.id
+  subnet_id     = aws_subnet.public["1b"].id
 
   vpc_security_group_ids = [
     aws_security_group.bastion_host.id,

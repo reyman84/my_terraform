@@ -7,7 +7,7 @@
 # Launch Template (EC2 instance configuration)
 resource "aws_launch_template" "web_launch_template" {
   name          = "Web-Launch-Template"
-  image_id      = var.ami["amazon_linux_2"]
+  image_id      = data.aws_ami.linux.id
   instance_type = "t2.micro"
   key_name      = aws_key_pair.web01.id
 
@@ -34,7 +34,7 @@ resource "aws_launch_template" "web_launch_template" {
 
 # Auto Scaling Group (ASG)
 resource "aws_autoscaling_group" "web_asg" {
-  for_each            = aws_subnet.private_subnets
+  for_each            = aws_subnet.private
   vpc_zone_identifier = [each.value.id]
   desired_capacity    = 2
   min_size            = 2
