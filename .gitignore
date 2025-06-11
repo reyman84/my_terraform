@@ -3,3 +3,5 @@
 terraform.tfvars
 key_files/*
 outputs.tf
+terraform.tfstate
+terraform.tfstate.backup
