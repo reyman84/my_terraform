@@ -30,7 +30,8 @@
   }
 }*/
 
-# --------------------- Docker & GIT on Amazon-Linux-2 ---------------------
+# --------------------- Docker Engine & Docker Compose ---------------------
+# --------------------------- on Amazon-Linux-2 ----------------------------
 
 /*resource "aws_instance" "docker" {
   instance_type = "t2.medium"               # t2-medium is "Chargeable"
@@ -106,7 +107,7 @@
 }*/
 
 # --------------------- Manual-Project ---------------------
-# --------------------- MYSQL / Mariadb ---------------------
+# --------------------- MYSQL/ Mariadb ---------------------
 
 /*resource "aws_instance" "manual_project_sql" {
   instance_type = "t2.micro"
@@ -227,10 +228,11 @@ resource "aws_instance" "ansible_hosts" {
   }
 }*/
 
-# --------------------- Jenkins Master ---------------------
+# --------------------- Jenkins Master  ---------------------
+# ------- on top of Ubuntu AMI with tools configured --------
 
 /*resource "aws_instance" "jenkins_master" {
-  ami           = var.ami["jenkins_master"] # Basic Jenkins installation
+  ami           = var.ami["jenkins_master"]
   instance_type = "t2.small"
   key_name      = aws_key_pair.jenkins_master.id
   subnet_id     = aws_subnet.public["1c"].id
@@ -321,9 +323,10 @@ resource "null_resource" "volume_provisioner_slave" {
 }*/
 
 # --------------------- Nexus Setup ---------------------
+# ---------------- on top of Amazon AMI -----------------
 
 /*resource "aws_instance" "nexus" {
-  ami           = var.ami["nexus"] # Nexus Setup on top of Amazon AMI
+  ami           = var.ami["nexus"]
   instance_type = "t2.medium"
   key_name      = aws_key_pair.bastion_host.id
   subnet_id     = aws_subnet.public["1c"].id
@@ -340,9 +343,10 @@ resource "null_resource" "volume_provisioner_slave" {
 }*/
 
 # --------------------- Sonarqube Setup ---------------------
+# ------------------ on top of Ubuntu AMI -------------------
 
 /*resource "aws_instance" "sonarqube" {
-  ami           = var.ami["sonarqube"] # SonarQube Setup on top of Ubuntu AMI
+  ami           = var.ami["sonarqube"] 
   instance_type = "t2.medium"
   key_name      = aws_key_pair.bastion_host.id
   subnet_id     = aws_subnet.public["1b"].id
