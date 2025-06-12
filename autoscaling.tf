@@ -1,4 +1,3 @@
-
 # --------------------- Launch Template --------------------- #
 # Launch Template (EC2 instance configuration)
 resource "aws_launch_template" "web_launch_template" {
@@ -24,8 +23,8 @@ resource "aws_launch_template" "web_launch_template" {
               EOF 
   )
 
-  lifecycle { 
-    create_before_destroy = true 
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
