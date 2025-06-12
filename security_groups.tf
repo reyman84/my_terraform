@@ -12,8 +12,8 @@ resource "aws_security_group" "bastion_host" {
 
   ingress {
     description = "Allow SSH from Trusted IP"
-    from_port   = 22
-    to_port     = 22
+    from_port   = local.ports.ssh
+    to_port     = local.ports.ssh
     protocol    = "tcp"
     cidr_blocks = [var.trusted_ip]
   }
@@ -32,7 +32,8 @@ resource "aws_security_group" "bastion_host" {
   }
 }
 
-# --------------------- Security Group - Ansible-host (port 22 from bastion host) --------------------- #
+# --------------------- Security Group - Ansible-host  --------------------- #
+# ------------------------ port 22 from bastion host ----------------------- #
 # For doing SSH from Ansible Controller Machine to Ansible Hosts
 
 /*resource "aws_security_group" "ssh_from_bastion_host" {
@@ -56,8 +57,8 @@ resource "aws_security_group" "bastion_host" {
 
 resource "aws_vpc_security_group_ingress_rule" "allow_22_from_bastion_host" {
   description                  = "Allow SSH from Bastion Host"
-  from_port                    = 22
-  to_port                      = 22
+  from_port                    = local.ports.ssh
+  to_port                      = local.ports.ssh
   ip_protocol                  = "tcp"
   referenced_security_group_id = aws_security_group.bastion_host.id
   security_group_id            = aws_security_group.ssh_from_bastion_host.id
@@ -76,8 +77,8 @@ resource "aws_vpc_security_group_ingress_rule" "allow_22_from_bastion_host" {
 
   ingress {
     description = "Allow HTTP from anywhere"
-    from_port   = 80
-    to_port     = 80
+    from_port   = local.ports.http
+    to_port     = local.ports.http
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -110,8 +111,8 @@ resource "aws_vpc_security_group_ingress_rule" "allow_22_from_bastion_host" {
 
 resource "aws_security_group_rule" "allow_trusted_to_jenkins" {
   type              = "ingress"
-  from_port         = 8080
-  to_port           = 8080
+  from_port         = local.ports.jenkins
+  to_port           = local.ports.jenkins
   protocol          = "tcp"
   cidr_blocks       = [var.trusted_ip]
   security_group_id = aws_security_group.jenkins_master.id
@@ -120,8 +121,8 @@ resource "aws_security_group_rule" "allow_trusted_to_jenkins" {
 
 resource "aws_security_group_rule" "allow_sonar_to_jenkins" {
   type                     = "ingress"
-  from_port                = 8080
-  to_port                  = 8080
+  from_port                = local.ports.jenkins
+  to_port                  = local.ports.jenkins
   protocol                 = "tcp"
   source_security_group_id = aws_security_group.sonar_sg.id
   security_group_id        = aws_security_group.jenkins_master.id
@@ -152,8 +153,8 @@ resource "aws_security_group_rule" "egress_all_jenkins" {
 
 resource "aws_security_group_rule" "allow_trusted_to_sonar" {
   type              = "ingress"
-  from_port         = 80
-  to_port           = 80
+  from_port         = local.ports.http
+  to_port           = local.ports.http
   protocol          = "tcp"
   cidr_blocks       = [var.trusted_ip]
   security_group_id = aws_security_group.sonar_sg.id
@@ -162,8 +163,8 @@ resource "aws_security_group_rule" "allow_trusted_to_sonar" {
 
 resource "aws_security_group_rule" "allow_jenkins_to_sonar" {
   type                     = "ingress"
-  from_port                = 80
-  to_port                  = 80
+  from_port                = local.ports.http
+  to_port                  = local.ports.http
   protocol                 = "tcp"
   source_security_group_id = aws_security_group.jenkins_master.id
   security_group_id        = aws_security_group.sonar_sg.id
@@ -194,8 +195,8 @@ resource "aws_security_group_rule" "egress_all_sonar" {
 
 resource "aws_security_group_rule" "allow_trusted_to_nexus" {
   type              = "ingress"
-  from_port         = 8081
-  to_port           = 8081
+  from_port         = local.ports.nexus
+  to_port           = local.ports.nexus
   protocol          = "tcp"
   cidr_blocks       = [var.trusted_ip]
   security_group_id = aws_security_group.nexus_sg.id
@@ -214,8 +215,8 @@ resource "aws_security_group_rule" "egress_all_nexus" {
 
 resource "aws_security_group_rule" "allow_jenkins_to_nexus" {
   type                     = "ingress"
-  from_port                = 8081
-  to_port                  = 8081
+  from_port                = local.ports.nexus
+  to_port                  = local.ports.nexus
   protocol                 = "tcp"
   source_security_group_id = aws_security_group.jenkins_master.id
   security_group_id        = aws_security_group.nexus_sg.id
@@ -245,8 +246,8 @@ resource "aws_security_group_rule" "allow_jenkins_to_nexus" {
 
 resource "aws_vpc_security_group_ingress_rule" "allow_SSH_from_bastion_host" {
   description                  = "Allow SSH from Bastion Host"
-  from_port                    = 22
-  to_port                      = 22
+  from_port                    = local.ports.ssh
+  to_port                      = local.ports.ssh
   ip_protocol                  = "tcp"
   referenced_security_group_id = aws_security_group.bastion_host.id
   security_group_id            = aws_security_group.web01.id
@@ -258,8 +259,8 @@ resource "aws_vpc_security_group_ingress_rule" "allow_SSH_from_bastion_host" {
 
 resource "aws_vpc_security_group_ingress_rule" "allow_HTTP_from_ALB_SG" {
   description                  = "Allow HTTP from ALB-SG"
-  from_port                    = 80
-  to_port                      = 80
+  from_port                    = local.ports.http
+  to_port                      = local.ports.http
   ip_protocol                  = "tcp"
   security_group_id            = aws_security_group.web01.id
   referenced_security_group_id = aws_security_group.http.id
