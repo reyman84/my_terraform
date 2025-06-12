@@ -1,7 +1,8 @@
-.terraform/*
 .terraform.lock.hcl
-terraform.tfvars
+.terraform/*
 key_files/*
 outputs.tf
 terraform.tfstate
 terraform.tfstate.backup
+terraform.tfvars
+.vscode/settings.json
