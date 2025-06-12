@@ -43,7 +43,7 @@ module "vpc" {
   private_subnet = var.private_subnet
 }
 
-module "bastion_host" {
+/*module "bastion_host" {
   source         = "./modules/bastion_host"
   instance_count = 1
   zone           = var.zone
@@ -55,4 +55,4 @@ module "bastion_host" {
   public_subnet  = var.public_subnet
   private_subnet = var.private_subnet
   subnet_id      = module.vpc.public_subnet_ids["1a"]
-}
+}*/
