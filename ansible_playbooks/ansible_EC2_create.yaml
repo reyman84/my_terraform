@@ -20,9 +20,9 @@
           Environment: Testing
         wait: true
       loop:
-        - { image: "ami-084568db4383264d4", name: "Managed-Node-1", subnet: "subnet-00a7b84ad28cf28da", sg: "sg-0d6ef13ba59907d6f" }
-        - { image: "ami-084568db4383264d4", name: "Managed-Node-2", subnet: "subnet-011c48fa3e05f47ab", sg: "sg-0d6ef13ba59907d6f" }
-        - { image: "ami-0f88e80871fd81e91", name: "Managed-Node-3", subnet: "subnet-08373be493d8df018", sg: "sg-0d6ef13ba59907d6f" }
+        - { image: "ami-084568db4383264d4", name: "Managed-Node-1", subnet: "subnet-02db3114eacdbf74f", sg: "sg-0b9262fe18b329d87" }
+        - { image: "ami-084568db4383264d4", name: "Managed-Node-2", subnet: "subnet-05301e2f3132792a7", sg: "sg-0b9262fe18b329d87" }
+        - { image: "ami-0f88e80871fd81e91", name: "Managed-Node-3", subnet: "subnet-04a6e2be31906aa73", sg: "sg-0b9262fe18b329d87" }
       register: ec2_results
 
     - name: Print EC2 instance details
