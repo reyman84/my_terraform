@@ -1,6 +1,6 @@
 # Providers
 provider "aws" {
-  region = var.region
+  region = "us-east-1"
 }
 
 terraform {
@@ -11,76 +11,6 @@ terraform {
     }
   }
   required_version = ">= 1.6.0"
-}
-
-# Backend Configuration
-
-# S3 bucket
-resource "aws_s3_bucket" "s3_bucket" {
-  bucket = "myterraform-backend2025"
-
-  tags = {
-    Name        = "Terraform Backend Bucket"
-    Environment = "Dev"
-  }
-}
-
-resource "aws_s3_bucket_versioning" "versioning" {
-  bucket = aws_s3_bucket.s3_bucket.id
-
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-
-resource "aws_s3_bucket_server_side_encryption_configuration" "encryption" {
-  bucket = aws_s3_bucket.s3_bucket.id
-
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
-}
-
-resource "aws_s3_bucket_public_access_block" "public_access" {
-  bucket = aws_s3_bucket.s3_bucket.id
-
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
-
-# DynamoDB table
-resource "aws_dynamodb_table" "terraform_lock" {
-  name         = "Terraform_VPC"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "LockID"
-
-  attribute {
-    name = "LockID"
-    type = "S"
-  }
-
-  server_side_encryption {
-    enabled = true
-  }
-
-  tags = {
-    Name        = "Terraform Lock Table"
-    Environment = "Dev"
-  }
-}
-
-terraform {
-  backend "s3" {
-    bucket         = "myterraform-backend2025"
-    key            = "Terraform_VPC/backend-report"
-    region         = "us-east-1"
-    dynamodb_table = "Terraform_VPC"
-    encrypt        = true
-  }
 }
 
 # Fetch latest Ubuntu 24.04 LTS AMI (Noble Numbat) with gp3 and HVM virtualization
@@ -118,6 +48,14 @@ data "aws_ami" "linux" {
 }
 
 locals {
+  subnet_id = {
+    "Host - Amazon_Linux" = module.vpc.public_subnet_ids["1a"]
+    "Host - Ubuntu"       = module.vpc.public_subnet_ids["1b"]
+  }
+}
+
+
+locals {
   ports = {
     ssh     = 22
     http    = 80
@@ -126,16 +64,14 @@ locals {
   }
 }
 
-locals {
-  instances = {
-    "Host - Amazon_Linux" = data.aws_ami.linux.id
-    "Host - Ubuntu"       = data.aws_ami.ubuntu.id
-  }
-}
-
-locals {
-  subnet_id = {
-    "Host - Amazon_Linux" = aws_subnet.public["1a"].id
-    "Host - Ubuntu"       = aws_subnet.public["1b"].id
-  }
+module "vpc" {
+  source          = "./modules/vpc"
+  region          = var.region
+  trusted_ip      = var.trusted_ip
+  ami             = var.ami
+  instance_count  = var.instance_count
+  vpc_cidr        = var.vpc_cidr
+  zone            = var.zone
+  public_subnet   = var.public_subnet
+  private_subnet  = var.private_subnet
 }

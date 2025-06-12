@@ -71,8 +71,7 @@
 }*/
 
 # --------------------- Web Server ---------------------
-
-/*resource "aws_instance" "web_servers" {
+/* resource "aws_instance" "web_servers" {
   #for_each      = aws_subnet.private_subnets
   count         = var.instance_count.unstable
   ami           = data.aws_ami.linux.id
@@ -194,7 +193,21 @@
 
 # --------------------- Ansible Host on 2 different AMIs ---------------------
 
-/*resource "aws_instance" "ansible_hosts" {
+/*locals {
+  instances = {
+    "Host - Amazon_Linux" = data.aws_ami.linux.id
+    "Host - Ubuntu"       = data.aws_ami.ubuntu.id
+  }
+}
+Add commentMore actions
+locals {
+  subnet_id = {
+    "Host - Amazon_Linux" = aws_subnet.public["1a"].id
+    "Host - Ubuntu"       = aws_subnet.public["1b"].id
+  }
+}
+
+resource "aws_instance" "ansible_hosts" {
   for_each = local.instances
   ami      = each.value
 
