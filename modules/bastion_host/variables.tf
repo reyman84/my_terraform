@@ -5,7 +5,7 @@ variable "region" {
 }
 
 variable "vpc_id" {
-  description = "VPC ID where the bastion host and security group will be created"
+  description = "VPC ID for the Bastion Host security group"
   type        = string
 }
 
@@ -37,13 +37,16 @@ variable "trusted_ip" {
   type        = string
 }
 
-# AMI & Compute Configuration
-variable "ami" {
-  description = "Mapping of instance roles/types to AMI IDs"
-  type        = map(string)
+variable "instance_count" {
+  type    = number
 }
 
-variable "instance_count" {
-  description = "Mapping of instance types to the number of instances to launch"
-  type        = map(number)
+variable "subnet_id" {
+  description = "Subnet ID for the Bastion Host"
+  type        = string
+}
+
+variable "ami" {
+  description = "AMI ID for the Bastion Host"
+  type        = string
 }

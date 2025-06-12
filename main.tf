@@ -13,40 +13,6 @@ terraform {
   required_version = ">= 1.6.0"
 }
 
-# Fetch latest Ubuntu 24.04 LTS AMI (Noble Numbat) with gp3 and HVM virtualization
-data "aws_ami" "ubuntu" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  owners = ["099720109477"] # Canonical
-}
-
-# Fetch latest Amazon Linux 2023 AMI with Kernel 6.1 and HVM virtualization
-data "aws_ami" "linux" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["al2023-ami-2023.7.*-kernel-6.1-x86_64"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  owners = ["137112412989"] # Amazon
-}
-
 locals {
   subnet_id = {
     "Host - Amazon_Linux" = module.vpc.public_subnet_ids["1a"]
@@ -65,13 +31,28 @@ locals {
 }
 
 module "vpc" {
-  source          = "./modules/vpc"
-  region          = var.region
-  trusted_ip      = var.trusted_ip
-  ami             = var.ami
-  instance_count  = var.instance_count
-  vpc_cidr        = var.vpc_cidr
-  zone            = var.zone
-  public_subnet   = var.public_subnet
-  private_subnet  = var.private_subnet
+  source         = "./modules/vpc"
+  vpc_id         = module.vpc.vpc_id
+  region         = var.region
+  trusted_ip     = var.trusted_ip
+  ami            = var.ami
+  instance_count = var.instance_count
+  vpc_cidr       = var.vpc_cidr
+  zone           = var.zone
+  public_subnet  = var.public_subnet
+  private_subnet = var.private_subnet
+}
+
+module "bastion_host" {
+  source         = "./modules/bastion_host"
+  instance_count = 1
+  zone           = var.zone
+  vpc_cidr       = var.vpc_cidr
+  region         = var.region
+  trusted_ip     = var.trusted_ip
+  ami            = data.aws_ami.linux.id
+  vpc_id         = module.vpc.vpc_id
+  public_subnet  = var.public_subnet
+  private_subnet = var.private_subnet
+  subnet_id      = module.vpc.public_subnet_ids["1a"]
 }
