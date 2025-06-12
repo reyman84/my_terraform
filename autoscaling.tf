@@ -1,6 +1,6 @@
 # --------------------- Launch Template --------------------- #
 # Launch Template (EC2 instance configuration)
-resource "aws_launch_template" "web_launch_template" {
+/*resource "aws_launch_template" "web_launch_template" {
   name          = "Web-Launch-Template"
   image_id      = data.aws_ami.linux.id
   instance_type = "t2.micro"
@@ -48,4 +48,4 @@ resource "aws_autoscaling_group" "web_asg" {
     value               = "Web-Instance"
     propagate_at_launch = true
   }
-}
+}*/
