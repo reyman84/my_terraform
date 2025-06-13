@@ -53,3 +53,7 @@ variable "ami" {
 variable "bastion_sg_id" {
   type = string
 }
+
+variable "ssh_bastion_sg_id" {
+  type = string
+}
