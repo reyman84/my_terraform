@@ -13,7 +13,7 @@ terraform {
   required_version = ">= 1.6.0"
 }
 
-locals {
+/*locals {
   subnet_id = {
     "Host - Amazon_Linux" = module.vpc.public_subnet_ids["1a"]
     "Host - Ubuntu"       = module.vpc.public_subnet_ids["1b"]
@@ -27,7 +27,7 @@ locals {
     jenkins = 8080
     nexus   = 8081
   }
-}
+}*/
 
 module "vpc" {
   source         = "./modules/vpc"
@@ -105,7 +105,7 @@ module "ansible_CM" {
 module "ansible_hosts" {
   source            = "./modules/ansible/hosts"
   zone              = var.zone
-  instance_count    = 1
+  instance_count    = 2
   vpc_cidr          = var.vpc_cidr
   region            = var.region
   trusted_ip        = var.trusted_ip
@@ -124,4 +124,20 @@ module "ansible_hosts" {
       subnet_id = module.vpc.public_subnet_ids["1b"]
     }
   }
+}
+
+module "docker" {
+  source         = "./modules/docker"
+  instance_count = 1
+  zone           = var.zone
+  vpc_cidr       = var.vpc_cidr
+  region         = var.region
+  trusted_ip     = var.trusted_ip
+  ami            = data.aws_ami.linux.id
+  key_pair_name  = module.bastion_host.bastion_key_pair_name
+  vpc_id         = module.vpc.vpc_id
+  public_subnet  = var.public_subnet
+  private_subnet = var.private_subnet
+  subnet_id      = module.vpc.public_subnet_ids["1b"]
+  bastion_sg_id  = module.bastion_host.bastion_sg_id
 }
