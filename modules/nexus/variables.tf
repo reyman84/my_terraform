@@ -54,8 +54,12 @@ variable "bastion_sg_id" {
   type = string
 }
 
-variable "nexus_sg_id" {
-  description = "Security group ID of Nexus to allow ingress"
+variable "key_pair_name" {
+  description = "Key pair name to SSH into Docker host"
   type        = string
-  default     = null
+}
+
+variable "jenkins_master_sg_id" {
+  description = "Security Group ID of Jenkins Master"
+  type        = string
 }

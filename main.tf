@@ -69,6 +69,7 @@ module "jenkins_master" {
   private_subnet = var.private_subnet
   subnet_id      = module.vpc.public_subnet_ids["1b"]
   bastion_sg_id  = module.bastion_host.bastion_sg_id
+  nexus_sg_id    = module.nexus.nexus_sg_id
 }
 
 module "jenkins_slave" {
@@ -140,4 +141,21 @@ module "docker" {
   private_subnet = var.private_subnet
   subnet_id      = module.vpc.public_subnet_ids["1b"]
   bastion_sg_id  = module.bastion_host.bastion_sg_id
+}
+
+module "nexus" {
+  source               = "./modules/nexus"
+  zone                 = var.zone
+  instance_count       = 1
+  vpc_cidr             = var.vpc_cidr
+  region               = var.region
+  trusted_ip           = var.trusted_ip
+  ami                  = var.ami["nexus"]
+  vpc_id               = module.vpc.vpc_id
+  public_subnet        = var.public_subnet
+  private_subnet       = var.private_subnet
+  subnet_id            = module.vpc.public_subnet_ids["1c"]
+  bastion_sg_id        = module.bastion_host.bastion_sg_id
+  key_pair_name        = module.bastion_host.bastion_key_pair_name
+  jenkins_master_sg_id = module.jenkins_master.jenkins_master_sg_id
 }

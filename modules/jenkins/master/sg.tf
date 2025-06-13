@@ -1,7 +1,7 @@
 resource "aws_security_group" "jenkins_master" {
   name        = "jenkins-master-sg"
   description = "SG for Jenkins Master"
-  vpc_id = var.vpc_id
+  vpc_id      = var.vpc_id
 
   tags = {
     Name = "jenkins-master-sg"
@@ -18,15 +18,15 @@ resource "aws_security_group_rule" "allow_trusted_to_jenkins" {
   description       = "Allow 8080 from Trusted IP"
 }
 
-/*resource "aws_security_group_rule" "allow_sonar_to_jenkins" {
+resource "aws_security_group_rule" "allow_sonar_to_jenkins" {
   type                     = "ingress"
   from_port                = 8080
   to_port                  = 8080
   protocol                 = "tcp"
-  source_security_group_id = aws_security_group.sonar_sg.id
+  source_security_group_id = var.nexus_sg_id
   security_group_id        = aws_security_group.jenkins_master.id
   description              = "Allow 8080 from SonarQube"
-}*/
+}
 
 resource "aws_security_group_rule" "egress_all_jenkins" {
   type              = "egress"

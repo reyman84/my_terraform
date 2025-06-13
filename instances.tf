@@ -72,25 +72,7 @@
   }
 }*/
 
-# --------------------- Nexus Setup ---------------------
-# ---------------- on top of Amazon AMI -----------------
 
-/*resource "aws_instance" "nexus" {
-  ami           = var.ami["nexus"]
-  instance_type = "t2.medium"
-  key_name      = aws_key_pair.bastion_host.id
-  subnet_id     = aws_subnet.public["1c"].id
-
-  vpc_security_group_ids = [
-    aws_security_group.bastion_host.id,
-    aws_security_group.nexus_sg.id
-  ]
-
-  tags = {
-    Name = "Nexus"
-  }
-
-}*/
 
 # --------------------- Sonarqube Setup ---------------------
 # ------------------ on top of Ubuntu AMI -------------------
