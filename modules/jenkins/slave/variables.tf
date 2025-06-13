@@ -37,7 +37,7 @@ variable "trusted_ip" {
 }
 
 variable "instance_count" {
-  type    = number
+  type = number
 }
 
 variable "subnet_id" {

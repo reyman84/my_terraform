@@ -2,9 +2,9 @@
 # --------------------------- on Amazon-Linux-2 ----------------------------
 
 resource "aws_instance" "docker" {
-  instance_type = "t2.micro"               # t2-medium is "Chargeable"
+  instance_type = "t2.micro" # t2-medium is "Chargeable"
   ami           = var.ami
-  key_name               = var.key_pair_name 
+  key_name      = var.key_pair_name
   subnet_id     = var.subnet_id
   vpc_security_group_ids = [
     var.bastion_sg_id,

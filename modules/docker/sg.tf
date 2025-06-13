@@ -1,7 +1,7 @@
 resource "aws_security_group" "All_Traffic_enabled" {
   name        = "All_Traffic_Enabled"
   description = "Allow all traffic from anywhere"
-  vpc_id = var.vpc_id
+  vpc_id      = var.vpc_id
 
   ingress {
     description      = "Allow all inbound traffic"

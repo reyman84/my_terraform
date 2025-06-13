@@ -4,7 +4,7 @@
 resource "aws_security_group" "bastion_host" {
   name        = "Bastion_Host"
   description = "Allow SSH connection from Trusted IP"
-  vpc_id = var.vpc_id
+  vpc_id      = var.vpc_id
 
   ingress {
     description = "Allow SSH from Trusted IP"
