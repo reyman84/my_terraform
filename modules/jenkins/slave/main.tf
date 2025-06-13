@@ -6,7 +6,7 @@ resource "aws_instance" "jenkins_slave" {
 
   vpc_security_group_ids = [
     var.bastion_sg_id,
-    #aws_security_group.ssh_from_bastion_host.id
+    var.ssh_bastion_sg_id
   ]
 
   tags = {
