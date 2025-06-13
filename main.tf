@@ -26,7 +26,7 @@ module "vpc" {
   trusted_ip     = var.trusted_ip
 }
 
-/*module "bastion_host" {
+module "bastion_host" {
   source         = "./modules/bastion_host"
   vpc_id         = module.vpc.vpc_id
   subnet_id      = module.vpc.public_subnet_ids["1a"]
@@ -107,4 +107,16 @@ module "nexus" {
   instance_count       = 1
   trusted_ip           = var.trusted_ip
   key_pair_name        = module.bastion_host.bastion_key_pair_name
-}*/
+}
+
+module "sonarqube" {
+  source               = "./modules/sonarqube"
+  vpc_id               = module.vpc.vpc_id
+  subnet_id            = module.vpc.public_subnet_ids["1c"]
+  bastion_sg_id        = module.bastion_host.bastion_sg_id
+  jenkins_master_sg_id = module.jenkins_master.jenkins_master_sg_id
+  ami                  = var.ami["sonarqube"]
+  instance_count       = 1
+  trusted_ip           = var.trusted_ip
+  key_pair_name        = module.bastion_host.bastion_key_pair_name
+}

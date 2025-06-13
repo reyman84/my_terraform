@@ -31,56 +31,6 @@
   }
 }*/
 
-# --------------------- Security Group - Jenkins --------------------- #
-
-/**/
-
-# --------------------- Security Group - SonarQube --------------------- #
-
-/*resource "aws_security_group" "sonar_sg" {
-  name        = "sonarqube-sg"
-  description = "SG for SonarQube"
-  vpc_id = module.vpc.vpc_id
-
-  tags = {
-    Name = "sonarqube-sg"
-  }
-}
-
-resource "aws_security_group_rule" "allow_trusted_to_sonar" {
-  type              = "ingress"
-  from_port         = 80
-  to_port           = 80
-  protocol          = "tcp"
-  cidr_blocks       = [var.trusted_ip]
-  security_group_id = aws_security_group.sonar_sg.id
-  description       = "Allow 80 from Trusted IP"
-}
-
-resource "aws_security_group_rule" "allow_jenkins_to_sonar" {
-  type                     = "ingress"
-  from_port                = 80
-  to_port                  = 80
-  protocol                 = "tcp"
-  source_security_group_id = aws_security_group.jenkins_master.id
-  security_group_id        = aws_security_group.sonar_sg.id
-  description              = "Allow 80 from Jenkins Master"
-}
-
-resource "aws_security_group_rule" "egress_all_sonar" {
-  type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  cidr_blocks       = ["0.0.0.0/0"]
-  ipv6_cidr_blocks  = ["::/0"]
-  security_group_id = aws_security_group.sonar_sg.id
-}*/
-
-# --------------------- Security Group - Nexus --------------------- #
-
-/**/
-
 # --------------------- Security Group - Web Server --------------------- #
 
 /*resource "aws_security_group" "web01" {
@@ -127,7 +77,3 @@ resource "aws_vpc_security_group_ingress_rule" "allow_HTTP_from_ALB_SG" {
     Name = "Allow HTTP from ALB"
   }
 }*/
-
-# --------------------- Allow All Traffic from anywhere --------------------- #
-
-/**/
