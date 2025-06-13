@@ -112,42 +112,6 @@
   }
 }*/
 
-# --------------------- Ansible Host on 2 different AMIs ---------------------
-
-/*locals {
-  instances = {
-    "Host - Amazon_Linux" = data.aws_ami.linux.id
-    "Host - Ubuntu"       = data.aws_ami.ubuntu.id
-  }
-}
-
-locals {
-  subnet_id = {
-    "Host - Amazon_Linux" = aws_subnet.public["1a"].id
-    "Host - Ubuntu"       = aws_subnet.public["1b"].id
-  }
-}
-
-resource "aws_instance" "ansible_hosts" {
-  for_each = local.instances
-  ami      = each.value
-
-  instance_type = "t2.micro"
-  key_name      = aws_key_pair.ansible.id
-
-  subnet_id = local.subnet_id[each.key]
-
-  vpc_security_group_ids = [
-    aws_security_group.bastion_host.id,
-    aws_security_group.ssh_from_bastion_host.id,
-    aws_security_group.All_Traffic_enabled.id
-  ]
-
-  tags = {
-    Name = each.key
-  }
-}*/
-
 # --------------------- Nexus Setup ---------------------
 # ---------------- on top of Amazon AMI -----------------
 
