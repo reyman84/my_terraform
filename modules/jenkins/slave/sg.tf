@@ -1,18 +1,9 @@
-# --------------------- Security Group - Port 22 only For SSH --------------------- #
-# SSH from my IP (For Bastion host, Ansible Controll Machine, Jenkins Master)
+# For doing SSH from Ansible Controller Machine to Ansible Hosts
 
-/*resource "aws_security_group" "bastion_host" {
-  name        = "Bastion_Host"
-  description = "Allow SSH connection from Trusted IP"
-  vpc_id = var.vpc_id
-
-  ingress {
-    description = "Allow SSH from Trusted IP"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.trusted_ip]
-  }
+resource "aws_security_group" "ssh_from_bastion_host" {
+  name        = "SSH_from_bastion_host"
+  description = "Allow port 22 from bastion host"
+  vpc_id      = var.vpc_id
 
   egress {
     description      = "Allow all outbound traffic"
@@ -24,30 +15,25 @@
   }
 
   tags = {
-    Name = "Bastion_Host"
+    Name = "SSH_from_bastion_host"
   }
 }
 
+resource "aws_vpc_security_group_ingress_rule" "allow_22_from_bastion_host" {
+  description                  = "Allow SSH from Bastion Host"
+  from_port                    = 22
+  to_port                      = 22
+  ip_protocol                  = "tcp"
+  referenced_security_group_id = var.bastion_sg_id
+  security_group_id            = aws_security_group.ssh_from_bastion_host.id
 
-# Key-Pairs
-resource "aws_key_pair" "bastion_host" {
-  key_name   = "bastion-host"
-  public_key = file("key_files/bastion-host.pub")
+  tags = {
+    Name = "Allow SSH from Bastion Host"
+  }
 }
 
-resource "aws_key_pair" "web01" {
-  key_name   = "web-host"
-  public_key = file("key_files/web01.pub")
-}
-
-resource "aws_key_pair" "ansible" {
-  key_name   = "ansible"
-  public_key = file("key_files/ansible.pub")
-}
-
-
-
+# Key-Pair
 resource "aws_key_pair" "jenkins_slave" {
   key_name   = "jenkins_slave"
   public_key = file("key_files/jenkins_slave.pub")
-}*/
+}

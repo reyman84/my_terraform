@@ -71,3 +71,18 @@ module "jenkins_master" {
   subnet_id      = module.vpc.public_subnet_ids["1c"]
   bastion_sg_id  = module.bastion_host.bastion_sg_id
 }
+
+module "jenkins_slave" {
+  source         = "./modules/jenkins/slave"
+  zone           = var.zone
+  instance_count = 1
+  vpc_cidr       = var.vpc_cidr
+  region         = var.region
+  trusted_ip     = var.trusted_ip
+  ami            = data.aws_ami.linux.id
+  vpc_id         = module.vpc.vpc_id
+  public_subnet  = var.public_subnet
+  private_subnet = var.private_subnet
+  subnet_id      = module.vpc.public_subnet_ids["1c"]
+  bastion_sg_id  = module.bastion_host.bastion_sg_id
+}

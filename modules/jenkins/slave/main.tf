@@ -1,12 +1,12 @@
-/*resource "aws_instance" "jenkins_slave" {
-  ami           = data.aws_ami.linux.id
+resource "aws_instance" "jenkins_slave" {
+  ami           = var.ami
   instance_type = "t2.micro"
   key_name      = aws_key_pair.jenkins_slave.id
-  subnet_id     = aws_subnet.public["1b"].id
+  subnet_id     = var.subnet_id
 
   vpc_security_group_ids = [
-    aws_security_group.bastion_host.id,
-    aws_security_group.ssh_from_bastion_host.id
+    var.bastion_sg_id,
+    #aws_security_group.ssh_from_bastion_host.id
   ]
 
   tags = {
@@ -69,4 +69,4 @@ resource "null_resource" "volume_provisioner_slave" {
       "sudo reboot"
     ]
   }
-}*/
+}

@@ -1,4 +1,4 @@
-/*# Global Configuration
+# Global Configuration
 variable "region" {
   description = "AWS region to deploy resources (e.g., us-east-1)"
   type        = string
@@ -8,7 +8,6 @@ variable "vpc_id" {
   description = "VPC ID for the Bastion Host security group"
   type        = string
 }
-
 
 # Networking Configuration
 variable "vpc_cidr" {
@@ -50,4 +49,7 @@ variable "ami" {
   description = "AMI ID for the Bastion Host"
   type        = string
 }
-*/
+
+variable "bastion_sg_id" {
+  type = string
+}
