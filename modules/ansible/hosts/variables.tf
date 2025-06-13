@@ -40,15 +40,15 @@ variable "instance_count" {
   type = number
 }
 
-variable "subnet_id" {
-  description = "Subnet ID for the Bastion Host"
-  type        = string
+# ✅ New map-based input
+variable "ansible_hosts_config" {
+  description = "AMI and subnet config per host"
+  type = map(object({
+    ami       = string
+    subnet_id = string
+  }))
 }
 
-variable "ami" {
-  description = "AMI ID for the Bastion Host"
-  type        = string
-}
 
 variable "bastion_sg_id" {
   type = string

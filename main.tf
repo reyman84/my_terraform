@@ -109,11 +109,19 @@ module "ansible_hosts" {
   vpc_cidr          = var.vpc_cidr
   region            = var.region
   trusted_ip        = var.trusted_ip
-  ami               = data.aws_ami.linux.id
   vpc_id            = module.vpc.vpc_id
   public_subnet     = var.public_subnet
   private_subnet    = var.private_subnet
-  subnet_id         = module.vpc.public_subnet_ids["1c"]
   bastion_sg_id     = module.bastion_host.bastion_sg_id
   ssh_bastion_sg_id = module.bastion_host.ssh_bastion_sg_id
+  ansible_hosts_config = {
+    amazon_linux = {
+      ami       = data.aws_ami.linux.id
+      subnet_id = module.vpc.public_subnet_ids["1a"]
+    },
+    ubuntu = {
+      ami       = data.aws_ami.ubuntu.id
+      subnet_id = module.vpc.public_subnet_ids["1b"]
+    }
+  }
 }
