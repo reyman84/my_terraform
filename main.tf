@@ -13,106 +13,63 @@ terraform {
   required_version = ">= 1.6.0"
 }
 
-/*locals {
-  subnet_id = {
-    "Host - Amazon_Linux" = module.vpc.public_subnet_ids["1a"]
-    "Host - Ubuntu"       = module.vpc.public_subnet_ids["1b"]
-  }
-}
-
-locals {
-  ports = {
-    ssh     = 22
-    http    = 80
-    jenkins = 8080
-    nexus   = 8081
-  }
-}*/
-
 module "vpc" {
   source         = "./modules/vpc"
-  vpc_id         = module.vpc.vpc_id
   region         = var.region
-  trusted_ip     = var.trusted_ip
+  zone           = var.zone
+  vpc_id         = module.vpc.vpc_id
+  vpc_cidr       = var.vpc_cidr
+  public_subnet  = var.public_subnet
+  private_subnet = var.private_subnet
   ami            = var.ami
   instance_count = var.instance_count
-  vpc_cidr       = var.vpc_cidr
-  zone           = var.zone
-  public_subnet  = var.public_subnet
-  private_subnet = var.private_subnet
+  trusted_ip     = var.trusted_ip
 }
 
-module "bastion_host" {
+/*module "bastion_host" {
   source         = "./modules/bastion_host"
-  instance_count = 1
-  zone           = var.zone
-  vpc_cidr       = var.vpc_cidr
-  region         = var.region
-  trusted_ip     = var.trusted_ip
-  ami            = data.aws_ami.linux.id
   vpc_id         = module.vpc.vpc_id
-  public_subnet  = var.public_subnet
-  private_subnet = var.private_subnet
   subnet_id      = module.vpc.public_subnet_ids["1a"]
+  ami            = data.aws_ami.linux.id
+  instance_count = 1
+  trusted_ip     = var.trusted_ip
 }
 
 module "jenkins_master" {
   source         = "./modules/jenkins/master"
-  zone           = var.zone
-  instance_count = 1
-  vpc_cidr       = var.vpc_cidr
-  region         = var.region
-  trusted_ip     = var.trusted_ip
-  ami            = var.ami["jenkins_master"]
   vpc_id         = module.vpc.vpc_id
-  public_subnet  = var.public_subnet
-  private_subnet = var.private_subnet
   subnet_id      = module.vpc.public_subnet_ids["1b"]
   bastion_sg_id  = module.bastion_host.bastion_sg_id
   nexus_sg_id    = module.nexus.nexus_sg_id
+  instance_count = 1
+  ami            = var.ami["jenkins_master"]
+  trusted_ip     = var.trusted_ip
 }
 
 module "jenkins_slave" {
   source            = "./modules/jenkins/slave"
-  zone              = var.zone
-  instance_count    = 1
-  vpc_cidr          = var.vpc_cidr
-  region            = var.region
-  trusted_ip        = var.trusted_ip
-  ami               = data.aws_ami.linux.id
   vpc_id            = module.vpc.vpc_id
-  public_subnet     = var.public_subnet
-  private_subnet    = var.private_subnet
   subnet_id         = module.vpc.public_subnet_ids["1c"]
   bastion_sg_id     = module.bastion_host.bastion_sg_id
   ssh_bastion_sg_id = module.bastion_host.ssh_bastion_sg_id
+  ami               = data.aws_ami.linux.id
+  instance_count    = 1
+  trusted_ip        = var.trusted_ip
 }
 
 module "ansible_CM" {
   source         = "./modules/ansible/controller"
-  zone           = var.zone
-  instance_count = 1
-  vpc_cidr       = var.vpc_cidr
-  region         = var.region
-  trusted_ip     = var.trusted_ip
-  ami            = data.aws_ami.ubuntu.id
   vpc_id         = module.vpc.vpc_id
-  public_subnet  = var.public_subnet
-  private_subnet = var.private_subnet
   subnet_id      = module.vpc.public_subnet_ids["1a"]
   bastion_sg_id  = module.bastion_host.bastion_sg_id
+  ami            = data.aws_ami.ubuntu.id
+  instance_count = 1
+  trusted_ip     = var.trusted_ip
 }
 
 module "ansible_hosts" {
   source            = "./modules/ansible/hosts"
-  zone              = var.zone
-  instance_count    = 2
-  vpc_cidr          = var.vpc_cidr
-  region            = var.region
-  trusted_ip        = var.trusted_ip
   vpc_id            = module.vpc.vpc_id
-  public_subnet     = var.public_subnet
-  private_subnet    = var.private_subnet
   bastion_sg_id     = module.bastion_host.bastion_sg_id
   ssh_bastion_sg_id = module.bastion_host.ssh_bastion_sg_id
   ansible_hosts_config = {
@@ -125,37 +82,29 @@ module "ansible_hosts" {
       subnet_id = module.vpc.public_subnet_ids["1b"]
     }
   }
+  instance_count = 2
+  trusted_ip     = var.trusted_ip
 }
 
 module "docker" {
   source         = "./modules/docker"
-  instance_count = 1
-  zone           = var.zone
-  vpc_cidr       = var.vpc_cidr
-  region         = var.region
-  trusted_ip     = var.trusted_ip
-  ami            = data.aws_ami.linux.id
-  key_pair_name  = module.bastion_host.bastion_key_pair_name
   vpc_id         = module.vpc.vpc_id
-  public_subnet  = var.public_subnet
-  private_subnet = var.private_subnet
   subnet_id      = module.vpc.public_subnet_ids["1b"]
   bastion_sg_id  = module.bastion_host.bastion_sg_id
+  ami            = data.aws_ami.linux.id
+  instance_count = 1
+  trusted_ip     = var.trusted_ip
+  key_pair_name  = module.bastion_host.bastion_key_pair_name
 }
 
 module "nexus" {
   source               = "./modules/nexus"
-  zone                 = var.zone
-  instance_count       = 1
-  vpc_cidr             = var.vpc_cidr
-  region               = var.region
-  trusted_ip           = var.trusted_ip
-  ami                  = var.ami["nexus"]
   vpc_id               = module.vpc.vpc_id
-  public_subnet        = var.public_subnet
-  private_subnet       = var.private_subnet
   subnet_id            = module.vpc.public_subnet_ids["1c"]
   bastion_sg_id        = module.bastion_host.bastion_sg_id
-  key_pair_name        = module.bastion_host.bastion_key_pair_name
   jenkins_master_sg_id = module.jenkins_master.jenkins_master_sg_id
-}
+  ami                  = var.ami["nexus"]
+  instance_count       = 1
+  trusted_ip           = var.trusted_ip
+  key_pair_name        = module.bastion_host.bastion_key_pair_name
+}*/
