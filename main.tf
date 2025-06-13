@@ -20,7 +20,6 @@ locals {
   }
 }
 
-
 locals {
   ports = {
     ssh     = 22
@@ -68,7 +67,7 @@ module "jenkins_master" {
   vpc_id         = module.vpc.vpc_id
   public_subnet  = var.public_subnet
   private_subnet = var.private_subnet
-  subnet_id      = module.vpc.public_subnet_ids["1c"]
+  subnet_id      = module.vpc.public_subnet_ids["1b"]
   bastion_sg_id  = module.bastion_host.bastion_sg_id
 }
 
@@ -84,5 +83,20 @@ module "jenkins_slave" {
   public_subnet  = var.public_subnet
   private_subnet = var.private_subnet
   subnet_id      = module.vpc.public_subnet_ids["1c"]
+  bastion_sg_id  = module.bastion_host.bastion_sg_id
+}
+
+module "ansible_CM" {
+  source         = "./modules/ansible/controller"
+  zone           = var.zone
+  instance_count = 1
+  vpc_cidr       = var.vpc_cidr
+  region         = var.region
+  trusted_ip     = var.trusted_ip
+  ami            = data.aws_ami.ubuntu.id
+  vpc_id         = module.vpc.vpc_id
+  public_subnet  = var.public_subnet
+  private_subnet = var.private_subnet
+  subnet_id      = module.vpc.public_subnet_ids["1a"]
   bastion_sg_id  = module.bastion_host.bastion_sg_id
 }
