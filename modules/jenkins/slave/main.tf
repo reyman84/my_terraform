@@ -39,7 +39,7 @@ resource "null_resource" "volume_provisioner_slave" {
 
 
   provisioner "file" {
-    source      = "jenkins_slave.sh"
+    source      = "${path.module}/jenkins_slave.sh"
     destination = "/home/ec2-user/jenkins_slave.sh"
   }
 

@@ -18,7 +18,7 @@ resource "aws_instance" "ansible_cm" {
   }
 
   provisioner "file" {
-    source      = "ansible.sh"
+    source      = "${path.module}/ansible.sh"
     destination = "/home/ubuntu/ansible.sh"
   }
 
