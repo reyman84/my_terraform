@@ -43,7 +43,7 @@ module "vpc" {
   private_subnet = var.private_subnet
 }
 
-/*module "bastion_host" {
+module "bastion_host" {
   source         = "./modules/bastion_host"
   instance_count = 1
   zone           = var.zone
@@ -55,4 +55,19 @@ module "vpc" {
   public_subnet  = var.public_subnet
   private_subnet = var.private_subnet
   subnet_id      = module.vpc.public_subnet_ids["1a"]
-}*/
+}
+
+module "jenkins_master" {
+  source         = "./modules/jenkins/master"
+  zone           = var.zone
+  instance_count = 1
+  vpc_cidr       = var.vpc_cidr
+  region         = var.region
+  trusted_ip     = var.trusted_ip
+  ami            = var.ami["jenkins_master"]
+  vpc_id         = module.vpc.vpc_id
+  public_subnet  = var.public_subnet
+  private_subnet = var.private_subnet
+  subnet_id      = module.vpc.public_subnet_ids["1c"]
+  bastion_sg_id  = module.bastion_host.bastion_sg_id
+}

@@ -99,45 +99,7 @@ resource "aws_vpc_security_group_ingress_rule" "allow_22_from_bastion_host" {
 
 # --------------------- Security Group - Jenkins --------------------- #
 
-/*resource "aws_security_group" "jenkins_master" {
-  name        = "jenkins-master-sg"
-  description = "SG for Jenkins Master"
-  vpc_id = module.vpc.vpc_id
-
-  tags = {
-    Name = "jenkins-master-sg"
-  }
-}
-
-resource "aws_security_group_rule" "allow_trusted_to_jenkins" {
-  type              = "ingress"
-  from_port         = local.ports.jenkins
-  to_port           = local.ports.jenkins
-  protocol          = "tcp"
-  cidr_blocks       = [var.trusted_ip]
-  security_group_id = aws_security_group.jenkins_master.id
-  description       = "Allow 8080 from Trusted IP"
-}
-
-resource "aws_security_group_rule" "allow_sonar_to_jenkins" {
-  type                     = "ingress"
-  from_port                = local.ports.jenkins
-  to_port                  = local.ports.jenkins
-  protocol                 = "tcp"
-  source_security_group_id = aws_security_group.sonar_sg.id
-  security_group_id        = aws_security_group.jenkins_master.id
-  description              = "Allow 8080 from SonarQube"
-}
-
-resource "aws_security_group_rule" "egress_all_jenkins" {
-  type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  cidr_blocks       = ["0.0.0.0/0"]
-  ipv6_cidr_blocks  = ["::/0"]
-  security_group_id = aws_security_group.jenkins_master.id
-}*/
+/**/
 
 # --------------------- Security Group - SonarQube --------------------- #
 
