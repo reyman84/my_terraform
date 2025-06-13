@@ -17,13 +17,8 @@ resource "aws_instance" "ansible_cm" {
     destination = "/home/ubuntu/clientkey"
   }
 
-  /*provisioner "file" {
-    source      = "installation_scripts/inventory"
-    destination = "/home/ubuntu/inventory"
-  }*/
-
   provisioner "file" {
-    source      = "installation_scripts/ansible.sh"
+    source      = "ansible.sh"
     destination = "/home/ubuntu/ansible.sh"
   }
 

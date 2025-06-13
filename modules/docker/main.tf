@@ -16,7 +16,7 @@ resource "aws_instance" "docker" {
   }
 
   provisioner "file" {
-    source      = "installation_scripts/docker.sh"
+    source      = "docker.sh"
     destination = "/home/ec2-user/docker.sh"
   }
 
