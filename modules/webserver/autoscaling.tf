@@ -30,7 +30,7 @@ resource "aws_launch_template" "web_launch_template" {
 
 # --------------------- Auto Scaling Group (ASG) --------------------- #
 resource "aws_autoscaling_group" "web_asg" {
-  vpc_zone_identifier = var.private_subnet_ids
+  #vpc_zone_identifier = var.private_subnet_ids
   desired_capacity    = 2
   min_size            = 2
   max_size            = 5
