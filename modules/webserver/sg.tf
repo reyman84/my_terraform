@@ -4,17 +4,17 @@
 
 # --------------------- Load Balancer SG - (Only Port 80 from anywhere) --------------------- #
 
-/*resource "aws_security_group" "http" {
-  name        = "ALB_SG"
+resource "aws_security_group" "http" {
+  name        = "http_sg"
   description = "Allow HTTP from anywhere"
-  vpc_id = module.vpc.vpc_id
+  vpc_id      = var.vpc_id
 
   ingress {
     description = "Allow HTTP from anywhere"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.trusted_ip]
   }
 
   egress {
@@ -27,16 +27,16 @@
   }
 
   tags = {
-    Name = "ALB_SG"
+    Name = "http_sg"
   }
-}*/
+}
 
 # --------------------- Security Group - Web Server --------------------- #
 
-/*resource "aws_security_group" "web01" {
+resource "aws_security_group" "web01" {
   name        = "Web_Server"
   description = "Allow HTTP and SSH inbound traffic and all outbound traffic"
-  vpc_id = module.vpc.vpc_id
+  vpc_id      = var.vpc_id
 
   egress {
     description      = "Allow all outbound traffic"
@@ -54,10 +54,10 @@
 
 resource "aws_vpc_security_group_ingress_rule" "allow_SSH_from_bastion_host" {
   description                  = "Allow SSH from Bastion Host"
-  from_port                    = local.ports.ssh
-  to_port                      = local.ports.ssh
+  from_port                    = 22
+  to_port                      = 22
   ip_protocol                  = "tcp"
-  referenced_security_group_id = aws_security_group.bastion_host.id
+  referenced_security_group_id = var.bastion_sg_id
   security_group_id            = aws_security_group.web01.id
 
   tags = {
@@ -65,7 +65,7 @@ resource "aws_vpc_security_group_ingress_rule" "allow_SSH_from_bastion_host" {
   }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_HTTP_from_ALB_SG" {
+resource "aws_vpc_security_group_ingress_rule" "allow_HTTP_from_http_sg" {
   description                  = "Allow HTTP from ALB-SG"
   from_port                    = 80
   to_port                      = 80
@@ -76,4 +76,11 @@ resource "aws_vpc_security_group_ingress_rule" "allow_HTTP_from_ALB_SG" {
   tags = {
     Name = "Allow HTTP from ALB"
   }
-}*/
+}
+
+
+# Key-Pair
+resource "aws_key_pair" "web" {
+  key_name   = "web01"
+  public_key = file("key_files/web01.pub")
+}

@@ -1,38 +1,3 @@
-# --------------------- Web Server ---------------------
-/* resource "aws_instance" "web_servers" {
-  #for_each      = aws_subnet.private_subnets
-  count         = var.instance_count.unstable
-  ami           = data.aws_ami.linux.id
-  instance_type = "t2.micro"
-  key_name      = aws_key_pair.web01.id
-  subnet_id = element([
-    aws_subnet.public["1a"].id,
-    aws_subnet.public["1b"].id,
-    aws_subnet.public["1"].id
-  ], count.index)
-
-  # This security group should all traffic on port 80
-  vpc_security_group_ids = [
-    aws_security_group.bastion_host.id,
-    aws_security_group.http.id
-  ]
-
-  tags = {
-    Name = "WebServer-${count.index + 1}"
-  }
-
-  user_data = <<-EOF
-                #!/bin/bash
-                sudo yum install wget unzip httpd -y
-                sudo systemctl start httpd
-                sudo systemctl enable httpd
-                wget https://www.tooplate.com/zip-templates/2117_infinite_loop.zip
-                unzip -o 2117_infinite_loop.zip
-                cp -r 2117_infinite_loop /var/www/html/
-                sudo systemctl restart httpd
-                EOF
-}*/
-
 # --------------------- Manual-Project ---------------------
 # --------------------- MYSQL/ Mariadb ---------------------
 
