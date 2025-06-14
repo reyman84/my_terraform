@@ -1,5 +1,5 @@
 # --------------------- Web Server ---------------------
-resource "aws_instance" "web_servers" {
+/*resource "aws_instance" "web_servers" {
   ami           = var.ami
   instance_type = "t2.micro"
   key_name      = aws_key_pair.web.id
@@ -25,4 +25,4 @@ resource "aws_instance" "web_servers" {
                 cp -r 2117_infinite_loop/* /var/www/html/
                 sudo systemctl restart httpd
                 EOF
-}
+}*/

@@ -33,7 +33,7 @@ resource "aws_security_group" "http" {
 
 # --------------------- Security Group - Web Server --------------------- #
 
-/*resource "aws_security_group" "web01" {
+resource "aws_security_group" "web01" {
   name        = "Web_Server"
   description = "Allow HTTP and SSH inbound traffic and all outbound traffic"
   vpc_id      = var.vpc_id
@@ -76,7 +76,7 @@ resource "aws_vpc_security_group_ingress_rule" "allow_HTTP_from_http_sg" {
   tags = {
     Name = "Allow HTTP from ALB"
   }
-}*/
+}
 
 
 # Key-Pair

@@ -47,3 +47,13 @@ variable "instance_count" {
   description = "Mapping of instance types to the number of instances to launch"
   type        = map(number)
 }
+
+variable "public_subnet_ids" {
+  description = "List of public subnet IDs for Load Balancer"
+  type        = list(string)
+}
+
+variable "private_subnet_ids" {
+  description = "List of private subnet IDs for Auto Scaling Group"
+  type        = list(string)
+}
