@@ -9,7 +9,7 @@ variable "trusted_ip" {
   type        = string
 }
 
-variable "instance_count" {
+/*variable "instance_count" {
   type = number
 }
 
@@ -21,4 +21,4 @@ variable "subnet_id" {
 variable "ami" {
   description = "AMI ID for the Bastion Host"
   type        = string
-}
+}*/

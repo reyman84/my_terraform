@@ -1,6 +1,6 @@
 # --------------------- Bastion Host ---------------------
 
-resource "aws_instance" "bastion_host" {
+/*resource "aws_instance" "bastion_host" {
   instance_type          = "t2.micro"
   ami                    = var.ami
   key_name               = aws_key_pair.bastion_host.id
@@ -28,4 +28,4 @@ resource "aws_instance" "bastion_host" {
       "chmod 400 /home/ec2-user/web01"
     ]
   }
-}
+}*/
