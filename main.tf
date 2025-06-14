@@ -119,7 +119,7 @@ module "sonarqube" {
   instance_count       = 1
   trusted_ip           = var.trusted_ip
   key_pair_name        = module.bastion_host.bastion_key_pair_name
-}*/
+}
 
 module "webserver" {
   source         = "./modules/webserver"
@@ -129,4 +129,4 @@ module "webserver" {
   ami            = data.aws_ami.linux.id
   instance_count = 1
   trusted_ip     = var.trusted_ip
-}
+}*/
