@@ -14,18 +14,18 @@ terraform {
 }
 
 module "vpc" {
-  source             = "./modules/vpc"
-  region             = var.region
-  zone               = var.zone
-  vpc_id             = module.vpc.vpc_id
-  vpc_cidr           = var.vpc_cidr
-  public_subnet      = var.public_subnet
-  private_subnet     = var.private_subnet
-  ami                = var.ami
-  instance_count     = var.instance_count
-  trusted_ip         = var.trusted_ip
-  private_subnet_ids = module.vpc.private_subnet_ids
-  public_subnet_ids  = module.vpc.public_subnet_ids
+  source         = "./modules/vpc"
+  region         = var.region
+  zone           = var.zone
+  vpc_id         = module.vpc.vpc_id
+  vpc_cidr       = var.vpc_cidr
+  public_subnet  = var.public_subnet
+  private_subnet = var.private_subnet
+  ami            = var.ami
+  instance_count = var.instance_count
+  trusted_ip     = var.trusted_ip
+  #private_subnet_ids = module.vpc.private_subnet_ids
+  public_subnet_ids = module.vpc.public_subnet_ids
 }
 
 module "bastion_host" {
@@ -121,7 +121,7 @@ module "sonarqube" {
   instance_count       = 1
   trusted_ip           = var.trusted_ip
   key_pair_name        = module.bastion_host.bastion_key_pair_name
-}*/
+}
 
 module "webserver" {
   source             = "./modules/webserver"
@@ -133,4 +133,4 @@ module "webserver" {
   trusted_ip         = var.trusted_ip
   private_subnet_ids = module.vpc.private_subnet_ids
   public_subnet_ids  = module.vpc.public_subnet_ids
-}
+}*/

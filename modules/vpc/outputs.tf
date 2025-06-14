@@ -9,7 +9,7 @@ output "public_subnet_ids" {
 }
 
 # Private Subnets
-output "private_subnet_ids" {
+/*output "private_subnet_ids" {
   description = "Map of private subnet IDs"
   value = [for subnet in aws_subnet.private : subnet.id]
-}
+}*/
