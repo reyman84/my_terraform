@@ -37,30 +37,7 @@ module "bastion_host" {
   trusted_ip = var.trusted_ip
 }
 
-module "jenkins_master" {
-  source         = "./modules/jenkins/master"
-  vpc_id         = module.vpc.vpc_id
-  subnet_id      = module.vpc.public_subnet_ids["1b"]
-  bastion_sg_id  = module.bastion_host.bastion_sg_id
-  instance_count = 1
-  ami            = var.ami["jenkins_master"]
-  trusted_ip     = var.trusted_ip
-  #Required will launching Nexus server
-  #nexus_sg_id    = module.nexus.nexus_sg_id
-}
-
-/*module "jenkins_slave" {
-  source            = "./modules/jenkins/slave"
-  vpc_id            = module.vpc.vpc_id
-  subnet_id         = module.vpc.public_subnet_ids["1c"]
-  bastion_sg_id     = module.bastion_host.bastion_sg_id
-  ssh_bastion_sg_id = module.bastion_host.ssh_bastion_sg_id
-  ami               = data.aws_ami.linux.id
-  instance_count    = 1
-  trusted_ip        = var.trusted_ip
-}
-
-module "ansible_CM" {
+/*module "ansible_CM" {
   source         = "./modules/ansible/controller"
   vpc_id         = module.vpc.vpc_id
   subnet_id      = module.vpc.public_subnet_ids["1a"]
@@ -68,9 +45,9 @@ module "ansible_CM" {
   ami            = data.aws_ami.ubuntu.id
   instance_count = 1
   trusted_ip     = var.trusted_ip
-}
+}*/
 
-module "ansible_hosts" {
+/*module "ansible_hosts" {
   source            = "./modules/ansible/hosts"
   vpc_id            = module.vpc.vpc_id
   bastion_sg_id     = module.bastion_host.bastion_sg_id
@@ -87,9 +64,9 @@ module "ansible_hosts" {
   }
   instance_count = 2
   trusted_ip     = var.trusted_ip
-}
+}*/
 
-module "docker" {
+/*module "docker" {
   source         = "./modules/docker"
   vpc_id         = module.vpc.vpc_id
   subnet_id      = module.vpc.public_subnet_ids["1b"]
@@ -98,9 +75,32 @@ module "docker" {
   instance_count = 1
   trusted_ip     = var.trusted_ip
   key_pair_name  = module.bastion_host.bastion_key_pair_name
-}
+}*/
 
-module "nexus" {
+/*module "jenkins_master" {
+  source         = "./modules/jenkins/master"
+  vpc_id         = module.vpc.vpc_id
+  subnet_id      = module.vpc.public_subnet_ids["1b"]
+  bastion_sg_id  = module.bastion_host.bastion_sg_id
+  instance_count = 1
+  ami            = var.ami["jenkins_master"]
+  trusted_ip     = var.trusted_ip
+  #Required will launching Nexus server
+  #nexus_sg_id    = module.nexus.nexus_sg_id
+}*/
+
+/*module "jenkins_slave" {
+  source            = "./modules/jenkins/slave"
+  vpc_id            = module.vpc.vpc_id
+  subnet_id         = module.vpc.public_subnet_ids["1c"]
+  bastion_sg_id     = module.bastion_host.bastion_sg_id
+  ssh_bastion_sg_id = module.bastion_host.ssh_bastion_sg_id
+  ami               = data.aws_ami.linux.id
+  instance_count    = 1
+  trusted_ip        = var.trusted_ip
+}*/
+
+/*module "nexus" {
   source               = "./modules/nexus"
   vpc_id               = module.vpc.vpc_id
   subnet_id            = module.vpc.public_subnet_ids["1c"]
@@ -109,11 +109,10 @@ module "nexus" {
   instance_count       = 1
   trusted_ip           = var.trusted_ip
   key_pair_name        = module.bastion_host.bastion_key_pair_name
-  #jenkins_master_sg_id = module.jenkins_master.jenkins_master_sg_id
+  jenkins_master_sg_id = module.jenkins_master.jenkins_master_sg_id     # Jenkins SG should be working
+}*/
 
-}
-
-module "sonarqube" {
+/*module "sonarqube" {
   source               = "./modules/sonarqube"
   vpc_id               = module.vpc.vpc_id
   subnet_id            = module.vpc.public_subnet_ids["1c"]
@@ -122,18 +121,15 @@ module "sonarqube" {
   instance_count       = 1
   trusted_ip           = var.trusted_ip
   key_pair_name        = module.bastion_host.bastion_key_pair_name
-  # Required while working Jenkins Master
-  jenkins_master_sg_id = module.jenkins_master.jenkins_master_sg_id
-}
+  jenkins_master_sg_id = module.jenkins_master.jenkins_master_sg_id     # Jenkins SG should be working
+}*/
 
-module "webserver" {
-  source             = "./modules/webserver"
-  vpc_id             = module.vpc.vpc_id
-  subnet_id          = module.vpc.public_subnet_ids[0]
-  bastion_sg_id      = module.bastion_host.bastion_sg_id
-  ami                = data.aws_ami.linux.id
-  instance_count     = 1
-  trusted_ip         = var.trusted_ip
-  private_subnet_ids = module.vpc.private_subnet_ids
-  public_subnet_ids  = module.vpc.public_subnet_ids
+/*module "web-on-server" {
+  source         = "./modules/web-on-server"
+  vpc_id         = module.vpc.vpc_id
+  subnet_id      = module.vpc.public_subnet_ids["1c"]
+  bastion_sg_id  = module.bastion_host.bastion_sg_id
+  ami            = data.aws_ami.linux.id
+  instance_count = 1
+  trusted_ip     = var.trusted_ip
 }*/
