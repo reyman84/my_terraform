@@ -49,8 +49,8 @@ variable "instance_count" {
 }
 
 variable "public_subnet_ids" {
-  description = "List of public subnet IDs for Load Balancer"
-  type        = list(string)
+  description = "Map of public subnet IDs for Load Balancer"
+  type        = map(string)
 }
 
 /*variable "private_subnet_ids" {

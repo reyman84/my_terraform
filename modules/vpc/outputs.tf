@@ -2,10 +2,12 @@ output "vpc_id" {
   value = aws_vpc.vpc.id
 }
 
-# Public Subnets
 output "public_subnet_ids" {
-  description = "List of public subnet IDs"
-  value       = values(aws_subnet.public)[*].id
+  description = "Map of AZ keys to public subnet IDs"
+  value = {
+    for k, subnet in aws_subnet.public :
+    k => subnet.id
+  }
 }
 
 # Private Subnets
