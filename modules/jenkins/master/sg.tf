@@ -18,15 +18,15 @@ resource "aws_security_group_rule" "allow_trusted_to_jenkins" {
   description       = "Allow 8080 from Trusted IP"
 }
 
-resource "aws_security_group_rule" "allow_sonar_to_jenkins" {
+/*resource "aws_security_group_rule" "allow_nexus_to_jenkins" {
   type                     = "ingress"
   from_port                = 8080
   to_port                  = 8080
   protocol                 = "tcp"
   source_security_group_id = var.nexus_sg_id
   security_group_id        = aws_security_group.jenkins_master.id
-  description              = "Allow 8080 from SonarQube"
-}
+  description              = "Allow 8080 from Nexus"
+}*/
 
 resource "aws_security_group_rule" "egress_all_jenkins" {
   type              = "egress"

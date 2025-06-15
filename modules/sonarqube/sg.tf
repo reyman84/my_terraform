@@ -18,7 +18,7 @@ resource "aws_security_group_rule" "allow_trusted_to_sonar" {
   description       = "Allow 80 from Trusted IP"
 }
 
-resource "aws_security_group_rule" "allow_jenkins_to_sonar" {
+/*resource "aws_security_group_rule" "allow_jenkins_to_sonar" {
   type                     = "ingress"
   from_port                = 80
   to_port                  = 80
@@ -26,7 +26,7 @@ resource "aws_security_group_rule" "allow_jenkins_to_sonar" {
   source_security_group_id = var.jenkins_master_sg_id
   security_group_id        = aws_security_group.sonarqube_sg.id
   description              = "Allow 80 from Jenkins Master"
-}
+}*/
 
 resource "aws_security_group_rule" "egress_all_sonar" {
   type              = "egress"

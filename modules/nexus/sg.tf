@@ -28,7 +28,7 @@ resource "aws_security_group_rule" "egress_all_nexus" {
   security_group_id = aws_security_group.nexus_sg.id
 }
 
-resource "aws_security_group_rule" "allow_jenkins_to_nexus" {
+/*resource "aws_security_group_rule" "allow_jenkins_to_nexus" {
   type                     = "ingress"
   from_port                = 8081
   to_port                  = 8081
@@ -36,4 +36,4 @@ resource "aws_security_group_rule" "allow_jenkins_to_nexus" {
   source_security_group_id = var.jenkins_master_sg_id
   security_group_id        = aws_security_group.nexus_sg.id
   description              = "Allow 8081 from Jenkins Master"
-}
+}*/

@@ -37,18 +37,19 @@ module "bastion_host" {
   trusted_ip = var.trusted_ip
 }
 
-/*module "jenkins_master" {
+module "jenkins_master" {
   source         = "./modules/jenkins/master"
   vpc_id         = module.vpc.vpc_id
   subnet_id      = module.vpc.public_subnet_ids["1b"]
   bastion_sg_id  = module.bastion_host.bastion_sg_id
-  nexus_sg_id    = module.nexus.nexus_sg_id
   instance_count = 1
   ami            = var.ami["jenkins_master"]
   trusted_ip     = var.trusted_ip
+  #Required will launching Nexus server
+  #nexus_sg_id    = module.nexus.nexus_sg_id
 }
 
-module "jenkins_slave" {
+/*module "jenkins_slave" {
   source            = "./modules/jenkins/slave"
   vpc_id            = module.vpc.vpc_id
   subnet_id         = module.vpc.public_subnet_ids["1c"]
@@ -104,11 +105,12 @@ module "nexus" {
   vpc_id               = module.vpc.vpc_id
   subnet_id            = module.vpc.public_subnet_ids["1c"]
   bastion_sg_id        = module.bastion_host.bastion_sg_id
-  jenkins_master_sg_id = module.jenkins_master.jenkins_master_sg_id
   ami                  = var.ami["nexus"]
   instance_count       = 1
   trusted_ip           = var.trusted_ip
   key_pair_name        = module.bastion_host.bastion_key_pair_name
+  #jenkins_master_sg_id = module.jenkins_master.jenkins_master_sg_id
+
 }
 
 module "sonarqube" {
@@ -116,11 +118,12 @@ module "sonarqube" {
   vpc_id               = module.vpc.vpc_id
   subnet_id            = module.vpc.public_subnet_ids["1c"]
   bastion_sg_id        = module.bastion_host.bastion_sg_id
-  jenkins_master_sg_id = module.jenkins_master.jenkins_master_sg_id
   ami                  = var.ami["sonarqube"]
   instance_count       = 1
   trusted_ip           = var.trusted_ip
   key_pair_name        = module.bastion_host.bastion_key_pair_name
+  # Required while working Jenkins Master
+  jenkins_master_sg_id = module.jenkins_master.jenkins_master_sg_id
 }
 
 module "webserver" {
