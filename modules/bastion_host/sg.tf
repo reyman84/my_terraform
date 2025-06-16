@@ -61,29 +61,3 @@ resource "aws_vpc_security_group_ingress_rule" "allow_22_from_bastion_host" {
     Name = "Allow SSH from Bastion Host"
   }
 }
-
-# Key-Pairs
-resource "aws_key_pair" "bastion_host" {
-  key_name   = "bastion-host"
-  public_key = file("key_files/bastion-host.pub")
-}
-
-/*resource "aws_key_pair" "web01" {
-  key_name   = "web-host"
-  public_key = file("key_files/web01.pub")
-}
-
-resource "aws_key_pair" "ansible" {
-  key_name   = "ansible"
-  public_key = file("key_files/ansible.pub")
-}
-
-resource "aws_key_pair" "jenkins_master" {
-  key_name   = "jenkins_master"
-  public_key = file("key_files/jenkins_master.pub")
-}
-
-resource "aws_key_pair" "jenkins_slave" {
-  key_name   = "jenkins_slave"
-  public_key = file("key_files/jenkins_slave.pub")
-}*/

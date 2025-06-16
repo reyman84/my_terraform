@@ -37,9 +37,3 @@ resource "aws_security_group_rule" "egress_all_jenkins" {
   ipv6_cidr_blocks  = ["::/0"]
   security_group_id = aws_security_group.jenkins_master.id
 }
-
-# Key-Pair
-resource "aws_key_pair" "jenkins_master" {
-  key_name   = "jenkins_master"
-  public_key = file("key_files/jenkins_master.pub")
-}
