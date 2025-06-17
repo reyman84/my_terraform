@@ -57,7 +57,7 @@ resource "aws_dynamodb_table" "terraform_lock" {
 terraform {
   backend "s3" {
     bucket         = "myterraform-backend2025"
-    key            = "Terraform_VPC/backend-report"
+    key            = "Terraform_VPC/terraform.tfstate"
     region         = "us-east-1"
     dynamodb_table = "Terraform_VPC"
     encrypt        = true
