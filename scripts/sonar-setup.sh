@@ -14,7 +14,7 @@ EOT
 
 sudo apt-get update -y
 sudo apt-get install openjdk-17-jdk -y
-sudo update-alternatives --config java
+#sudo update-alternatives --config java
 
 java -version
 

@@ -179,13 +179,13 @@ resource "aws_route_table_association" "private_rt_asso_1" {
 ###############
 
 # --------------------- Baston Host --------------------- #
-resource "aws_key_pair" "baston_host" {
-  key_name   = "bastion-host"
-  public_key = file("key-files/bastion-host.pub")
+resource "aws_key_pair" "devops-project" {
+  key_name   = "devops-project"
+  public_key = file("key-files/devops-project.pub")
 }
 
 # --------------------- Web Server --------------------- #
-resource "aws_key_pair" "web01" {
+/*resource "aws_key_pair" "web01" {
   key_name   = "web-host"
   public_key = file("key-files/web01.pub")
 }
@@ -194,4 +194,4 @@ resource "aws_key_pair" "web01" {
 resource "aws_key_pair" "ansible" {
   key_name   = "ansible"
   public_key = file("key-files/ansible.pub")
-}
+}*/
