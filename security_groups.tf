@@ -8,7 +8,7 @@
 /*resource "aws_security_group" "bastion_host" {
   name        = "Baston_Host"
   description = "Allow SSH connection from Trusted IP"
-  vpc_id      = aws_vpc.vpc.id
+  vpc_id      = module.vpc.vpc_id
 
   ingress {
     description = "Allow SSH from Trusted IP"
@@ -37,7 +37,7 @@
 resource "aws_security_group" "ssh_from_bastion_host" {
   name        = "Ansible host - ssh_from_bastion_host"
   description = "Allow port 22 from bastion host"
-  vpc_id      = aws_vpc.vpc.id
+  vpc_id      = module.vpc.vpc_id
 
   egress {
     description      = "Allow all outbound traffic"
@@ -71,7 +71,7 @@ resource "aws_vpc_security_group_ingress_rule" "allow_22_from_Baston_Host" {
 resource "aws_security_group" "http" {
   name        = "ALB_SG"
   description = "Allow HTTP from anywhere"
-  vpc_id      = aws_vpc.vpc.id
+  vpc_id      = module.vpc.vpc_id
 
   ingress {
     description = "Allow HTTP from anywhere"
@@ -100,7 +100,7 @@ resource "aws_security_group" "http" {
 /*resource "aws_security_group" "web01" {
   name        = "Web_Server"
   description = "Allow HTTP and SSH inbound traffic and all outbound traffic"
-  vpc_id      = aws_vpc.vpc.id
+  vpc_id      = module.vpc.vpc_id
 
   egress {
     description      = "Allow all outbound traffic"
@@ -147,7 +147,7 @@ resource "aws_vpc_security_group_ingress_rule" "allow_HTTP_from_ALB_SG" {
 resource "aws_security_group" "All_Traffic_enabled" {
   name        = "All_Traffic_Enabled"
   description = "Allow all traffic from anywhere"
-  vpc_id      = aws_vpc.vpc.id
+  vpc_id      = module.vpc.vpc_id
 
   ingress {
     description      = "Allow all inbound traffic"
@@ -177,7 +177,7 @@ resource "aws_security_group" "All_Traffic_enabled" {
 resource "aws_security_group" "jenkins_master" {
   name        = "jenkins-master-sg"
   description = "SG for Jenkins Master"
-  vpc_id      = aws_vpc.vpc.id
+  vpc_id      = module.vpc.vpc_id
 
   ingress {
     description = "Allow SSH from Trusted IP"
@@ -224,7 +224,7 @@ resource "aws_security_group_rule" "allow_nexus_to_jenkins" {
 resource "aws_security_group" "nexus_sg" {
   name        = "nexus-sg"
   description = "SG for Nexus"
-  vpc_id      = aws_vpc.vpc.id
+  vpc_id      = module.vpc.vpc_id
 
   ingress {
     description = "Allow SSH from Trusted IP"
@@ -271,7 +271,7 @@ resource "aws_security_group_rule" "allow_jenkins_to_nexus" {
 resource "aws_security_group" "sonarqube_sg" {
   name        = "sonarqube-sg"
   description = "SG for SonarQube"
-  vpc_id      = aws_vpc.vpc.id
+  vpc_id      = module.vpc.vpc_id
 
   ingress {
     description = "Allow SSH from Trusted IP"
