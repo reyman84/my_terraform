@@ -3,7 +3,7 @@
 resource "aws_instance" "baston_host" {
   instance_type          = "t2.micro"
   ami                    = var.ami["amazon_linux_2"]
-  key_name               = aws_key_pair.baston_host.id
+  key_name               = aws_key_pair.devops-project.id
   subnet_id              = aws_subnet.public_subnet_1a.id
   vpc_security_group_ids = [aws_security_group.bastion_host.id]
 
@@ -19,7 +19,7 @@ resource "aws_instance" "baston_host" {
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = file("key-files/bastion-host")
+    private_key = file("key-files/devops-project")
     host        = self.public_ip
   }
 
@@ -35,7 +35,7 @@ resource "aws_instance" "baston_host" {
 resource "aws_instance" "docker" {
   instance_type = "t2.medium"               # t2-medium is "Chargeable"
   ami           = var.ami["amazon_linux_2"]
-  key_name      = aws_key_pair.baston_host.id
+  key_name      = aws_key_pair.devops-project.id
   subnet_id     = aws_subnet.public_subnet_1a.id
   vpc_security_group_ids = [
     aws_security_group.bastion_host.id,
@@ -54,7 +54,7 @@ resource "aws_instance" "docker" {
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = file("key-files/bastion-host")
+    private_key = file("key-files/devops-project")
     host        = self.public_ip
   }
 
@@ -112,7 +112,7 @@ resource "aws_instance" "web_servers" {
 /*resource "aws_instance" "manual_roject_sql" {
   instance_type = "t2.micro"
   ami           = var.ami["amazon_linux_2"]
-  key_name      = aws_key_pair.baston_host.id
+  key_name      = aws_key_pair.devops-project.id
   subnet_id     = aws_subnet.public_subnet_1a.id
 
   vpc_security_group_ids = [
@@ -127,7 +127,7 @@ resource "aws_instance" "web_servers" {
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = file("key-files/bastion-host")
+    private_key = file("key-files/devops-project")
     host        = self.public_ip
   }
 
@@ -249,21 +249,27 @@ Things pending:
 3. Adding nodes
 */
 
-/*resource "aws_instance" "jenkins_master" {
-  ami           = var.ami["amazon_linux_2"]
-  instance_type = "t2.micro"
-  key_name      = aws_key_pair.baston_host.id
-  subnet_id     = aws_subnet.public_subnet_1b.id
+resource "aws_instance" "jenkins_master" {
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = "t2.small"
+  key_name      = aws_key_pair.devops-project.id
+  subnet_id     = aws_subnet.public_subnet_1a.id
 
   vpc_security_group_ids = [
-    aws_security_group.bastion_host.id,
+    #aws_security_group.bastion_host.id,
     aws_security_group.jenkins_master.id
   ]
+
+  root_block_device {
+    volume_size           = 15    # 📦 Set volume to 15 GB
+    volume_type           = "gp2" # optional: or gp3, io1, etc.
+    delete_on_termination = true
+  }
 
   tags = {
     Name = "Jenkins_Master"
   }
-}
+  /*}
 
 # Create an additional EBS volume
 resource "aws_ebs_volume" "jenkins_master_volume" {
@@ -287,41 +293,42 @@ resource "aws_volume_attachment" "jenkins_master_attachment" {
 # Run commands when the volume is attached using remote-exec provisioner
 resource "null_resource" "volume_provisioner" {
   depends_on = [aws_volume_attachment.jenkins_master_attachment]
-
+*/
   provisioner "file" {
     source      = "scripts/jenkins_master.sh"
-    destination = "/home/ec2-user/jenkins_master.sh"
+    destination = "/home/ubuntu/jenkins_master.sh"
   }
 
   connection {
     type        = "ssh"
-    user        = "ec2-user"
-    private_key = file("key-files/bastion-host")
+    user        = "ubuntu"
+    private_key = file("key-files/devops-project")
     host        = aws_instance.jenkins_master.public_ip
   }
 
   provisioner "remote-exec" {
     inline = [
-      "sudo mkfs.ext4 /dev/xvdf",
-      "sudo mount /dev/xvdf /tmp",
-      "sudo -i -u root bash -c 'echo \"/dev/xvdf  /tmp  ext4  defaults,nofail  0  2\" >> /etc/fstab'",
-      "mount -a",
-      "df -h /tmp",
-      "sudo yum install -y dos2unix",
-      "dos2unix /home/ec2-user/jenkins_master.sh",
-      "sudo chmod 755 /home/ec2-user/jenkins_master.sh",
-      "sudo sh /home/ec2-user/jenkins_master.sh",
+      #"sudo mkfs.ext4 /dev/xvdf",
+      #"sudo mount /dev/xvdf /tmp",
+      #"sudo -i -u root bash -c 'echo \"/dev/xvdf  /tmp  ext4  defaults,nofail  0  2\" >> /etc/fstab'",
+      #"mount -a",
+      #"df -h /tmp",
+      "sudo apt update -y",
+      "sudo apt install -y dos2unix",
+      "dos2unix /home/ubuntu/jenkins_master.sh",
+      "sudo chmod 755 /home/ubuntu/jenkins_master.sh",
+      "sudo sh /home/ubuntu/jenkins_master.sh",
       "sudo reboot"
     ]
   }
-}*/
+}
 
 # --------------------- Jenkins Slave ---------------------
 
 /*resource "aws_instance" "jenkins_slave" {
   ami           = var.ami["amazon_linux_2"]
   instance_type = "t2.micro"
-  key_name      = aws_key_pair.baston_host.id
+  key_name      = aws_key_pair.devops-project.id
   subnet_id     = aws_subnet.public_subnet_1b.id
 
   vpc_security_group_ids = [
@@ -371,7 +378,7 @@ resource "null_resource" "volume_provisioner_slave" {
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = file("key-files/bastion-host")
+    private_key = file("key-files/devops-project")
     host        = aws_instance.jenkins_slave.public_ip
   }
 
@@ -392,16 +399,16 @@ resource "null_resource" "volume_provisioner_slave" {
 }*/
 
 # --------------------- Nexus Setup ---------------------
-/*
+
 resource "aws_instance" "nexus" {
-  ami           = var.ami["amazon_linux_2"]
-  instance_type = "t2.micro"
-  key_name      = aws_key_pair.baston_host.id
+  ami           = data.aws_ami.linux.id
+  instance_type = "t2.medium"
+  key_name      = aws_key_pair.devops-project.id
   subnet_id     = aws_subnet.public_subnet_1b.id
 
   vpc_security_group_ids = [
-    aws_security_group.bastion_host.id,
-    aws_security_group.nexus.id
+    #aws_security_group.bastion_host.id,
+    aws_security_group.nexus_sg.id
   ]
 
   tags = {
@@ -413,15 +420,15 @@ resource "aws_instance" "nexus" {
     destination = "/home/ec2-user/nexus-setup.sh"
   }
 
-  provisioner "file" {
-    source      = "key-files"
-    destination = "/home/ec2-user/key-files"
-  }
+  #provisioner "file" {
+  #  source      = "key-files"
+  #  destination = "/home/ec2-user/key-files"
+  #}
 
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = file("key-files/bastion-host")
+    private_key = file("key-files/devops-project")
     host        = aws_instance.nexus.public_ip
   }
 
@@ -439,14 +446,14 @@ resource "aws_instance" "nexus" {
 # --------------------- Sonarqube Setup ---------------------
 
 resource "aws_instance" "sonarqube" {
-  ami           = var.ami["ubuntu"]
-  instance_type = "t2.micro"
-  key_name      = aws_key_pair.baston_host.id
-  subnet_id     = aws_subnet.public_subnet_1b.id
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = "t2.medium"
+  key_name      = aws_key_pair.devops-project.id
+  subnet_id     = aws_subnet.public_subnet_1c.id
 
   vpc_security_group_ids = [
-    aws_security_group.bastion_host.id
-    #aws_security_group.nexus.id
+    #aws_security_group.bastion_host.id
+    aws_security_group.sonarqube_sg.id
   ]
 
   tags = {
@@ -455,23 +462,24 @@ resource "aws_instance" "sonarqube" {
 
   provisioner "file" {
     source      = "scripts/sonar-setup.sh"
-    destination = "/home/ec2-user/sonar-setup.sh"
+    destination = "/home/ubuntu/sonar-setup.sh"
   }
 
   connection {
     type        = "ssh"
-    user        = "ec2-user"
-    private_key = file("key-files/bastion-host")
+    user        = "ubuntu"
+    private_key = file("key-files/devops-project")
     host        = aws_instance.sonarqube.public_ip
   }
 
   provisioner "remote-exec" {
     inline = [
-      "sudo yum install -y dos2unix",
-      "sudo dos2unix /home/ec2-user/sonar-setup.sh",
-      "sudo chmod 755 /home/ec2-user/sonar-setup.sh",
-      "sudo sh /home/ec2-user/sonar-setup.sh",
-      "sudo reboot"
+      "sudo apt update",
+      "sudo apt install -y dos2unix",
+      "sudo dos2unix /home/ubuntu/sonar-setup.sh",
+      "sudo chmod 755 /home/ubuntu/sonar-setup.sh",
+      "sudo sh /home/ubuntu/sonar-setup.sh" #,
+      #"sudo reboot"
     ]
   }
-}*/
+}

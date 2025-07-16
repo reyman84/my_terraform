@@ -11,10 +11,10 @@ variable "public_subnet" {
   type        = map(string)
 }
 
-variable "private_subnet" {
+/*variable "private_subnet" {
   description = "Map of private subnets"
   type        = map(string)
-}
+}*/
 
 variable "zone" {
   description = "Map of zones"
@@ -26,7 +26,7 @@ variable "ami" {
   type        = map(string)
 }
 
-variable "instance_count" {
+/*variable "instance_count" {
   description = "Number of instances"
   type        = map(string)
-}
+}*/
