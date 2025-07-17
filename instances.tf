@@ -164,89 +164,6 @@ resource "aws_instance" "ansible_hosts" {
   }
 }*/
 
-# --------------------- Jenkins Master ---------------------
-/*
-Creating jenkins Master slave archiecture from scratch
-Things pending:
-1. Jenkins Master configuration on browser
-2. Adding AWS credentials
-3. Adding nodes
-*/
-
-resource "aws_instance" "jenkins_master" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = "t2.small"
-  key_name      = aws_key_pair.devops-project.id
-  subnet_id     = module.vpc.public_subnets[0]
-
-  vpc_security_group_ids = [
-    #aws_security_group.bastion_host.id,
-    aws_security_group.jenkins_master.id
-  ]
-
-  root_block_device {
-    volume_size           = 15    # 📦 Set volume to 15 GB
-    volume_type           = "gp2" # optional: or gp3, io1, etc.
-    delete_on_termination = true
-  }
-
-  tags = {
-    Name = "Jenkins_Master"
-  }
-  /*}
-
-# Create an additional EBS volume
-resource "aws_ebs_volume" "jenkins_master_volume" {
-  availability_zone = aws_instance.jenkins_master.availability_zone
-  size              = 2
-  type              = "gp2"
-
-  tags = {
-    Name = "/tmp - jenkins master"
-  }
-}
-
-# 2. Attach the EBS volume to the Jenkins master instance
-resource "aws_volume_attachment" "jenkins_master_attachment" {
-  device_name  = "/dev/sdf"
-  volume_id    = aws_ebs_volume.jenkins_master_volume.id
-  instance_id  = aws_instance.jenkins_master.id
-  force_detach = true
-}
-
-# Run commands when the volume is attached using remote-exec provisioner
-resource "null_resource" "volume_provisioner" {
-  depends_on = [aws_volume_attachment.jenkins_master_attachment]
-*/
-  provisioner "file" {
-    source      = "scripts/jenkins_master.sh"
-    destination = "/home/ubuntu/jenkins_master.sh"
-  }
-
-  connection {
-    type        = "ssh"
-    user        = "ubuntu"
-    private_key = file("key-files/devops-project")
-    host        = aws_instance.jenkins_master.public_ip
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      #"sudo mkfs.ext4 /dev/xvdf",
-      #"sudo mount /dev/xvdf /tmp",
-      #"sudo -i -u root bash -c 'echo \"/dev/xvdf  /tmp  ext4  defaults,nofail  0  2\" >> /etc/fstab'",
-      #"mount -a",
-      #"df -h /tmp",
-      "sudo apt update -y",
-      "sudo apt install -y dos2unix",
-      "dos2unix /home/ubuntu/jenkins_master.sh",
-      "sudo chmod 755 /home/ubuntu/jenkins_master.sh",
-      "sudo sh /home/ubuntu/jenkins_master.sh",
-      "sudo reboot"
-    ]
-  }
-}
-
 # --------------------- Jenkins Slave ---------------------
 
 /*resource "aws_instance" "jenkins_slave" {
@@ -321,6 +238,49 @@ resource "null_resource" "volume_provisioner_slave" {
     ]
   }
 }*/
+
+# --------------------- Jenkins Master ---------------------
+
+resource "aws_instance" "jenkins_master" {
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = "t2.small"
+  key_name      = aws_key_pair.devops-project.id
+  subnet_id     = module.vpc.public_subnets[0]
+  vpc_security_group_ids = [ aws_security_group.jenkins_master.id]
+
+  root_block_device {
+    volume_size           = 15
+    volume_type           = "gp2"
+    delete_on_termination = true
+  }
+
+  tags = {
+    Name = "Jenkins_Master"
+  }
+
+  provisioner "file" {
+    source      = "scripts/jenkins_master.sh"
+    destination = "/home/ubuntu/jenkins_master.sh"
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    private_key = file("key-files/devops-project")
+    host        = aws_instance.jenkins_master.public_ip
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo apt update -y",
+      "sudo apt install -y dos2unix",
+      "dos2unix /home/ubuntu/jenkins_master.sh",
+      "sudo chmod 755 /home/ubuntu/jenkins_master.sh",
+      "sudo sh /home/ubuntu/jenkins_master.sh",
+      "sudo reboot"
+    ]
+  }
+}
 
 # --------------------- Nexus Setup ---------------------
 

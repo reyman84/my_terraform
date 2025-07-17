@@ -54,12 +54,12 @@ variable "PROJECT" {
   default = "vprofile"
 }
 
-variable "ami" {
+/*variable "ami" {
   description = "AMI value for different types of instances"
   type        = map(string)
 }
 
-/*variable "instance_count" {
+variable "instance_count" {
   description = "Number of instances"
   type        = map(string)
 }*/
