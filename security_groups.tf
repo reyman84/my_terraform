@@ -254,7 +254,7 @@ resource "aws_security_group_rule" "allow_trusted_to_nexus" {
   to_port           = 8081
   protocol          = "tcp"
   cidr_blocks       = [var.trusted_ip]
-  security_group_id = aws_security_group.sonarqube_sg.id
+  security_group_id = aws_security_group.nexus_sg.id
   description       = "Allow 8081 from Trusted IP"
 }
 
@@ -268,14 +268,14 @@ resource "aws_security_group_rule" "allow_trusted_to_sonar" {
   description       = "Allow 80 from Trusted IP"
 }
 
-resource "aws_security_group_rule" "allow_nexus_to_jenkins" {
+resource "aws_security_group_rule" "allow_sonar_to_jenkins" {
   type                     = "ingress"
   from_port                = 8080
   to_port                  = 8080
   protocol                 = "tcp"
-  source_security_group_id = aws_security_group.nexus_sg.id
+  source_security_group_id = aws_security_group.sonarqube_sg.id
   security_group_id        = aws_security_group.jenkins_master.id
-  description              = "Allow 8080 from Nexus"
+  description              = "Allow 8080 from Sonar"
 }
 
 resource "aws_security_group_rule" "allow_jenkins_to_nexus" {
