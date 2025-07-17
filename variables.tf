@@ -1,9 +1,11 @@
 variable "region" {
   description = "Provides the AWS region to implement changes"
+  default = "us-east-1"
 }
 
 variable "trusted_ip" {
   description = "IP address of my Laptop's IP"
+  default = "49.207.50.91/32"
 }
 
 variable "VPC_NAME" {
