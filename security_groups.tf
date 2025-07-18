@@ -298,6 +298,17 @@ resource "aws_security_group_rule" "allow_jenkins_to_sonar" {
   description              = "Allow 80 from Jenkins Master"
 }
 
+# Open port 8080 for Jenkins from anywhere (for github webhooks)
+resource "aws_security_group_rule" "allow_github_with_jenkins" {
+  type              = "ingress"
+  from_port         = 8080
+  to_port           = 8080
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.jenkins_master.id
+  description       = "Allow 8080 from anywhere for GitHub webhooks"
+}
+
 # Egress rules for Jenkins, Nexus, and SonarQube
 
 resource "aws_security_group_rule" "egress_all_sonar" {
