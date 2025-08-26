@@ -1,5 +1,44 @@
 #!/bin/bash
 
+###############################################################################
+# Script Name   : multi_host_web_deploy.sh
+# Description   : Automates the deployment of a static website on multiple 
+#                 remote servers. The script installs required packages, 
+#                 downloads a website template, backs up existing web content, 
+#                 deploys the new site, and ensures Apache (httpd) is running.
+#
+# Author        : Ramandeep Singh
+# Date Created  : 2025-08-25
+# Version       : 1.0
+#
+# Usage         : ./multi_host_web_deploy.sh
+#
+# Servers       : web01, web02  (configured in SERVERS array)
+# User          : devops        (SSH user used for remote execution)
+#
+# Prerequisites :
+#   - SSH access to the servers with passwordless authentication (SSH key-based).
+#   - The user must have sudo privileges on target servers.
+#   - Internet access from the servers (to download the template).
+#
+# Actions Performed:
+#   1. Checks and installs required packages: httpd, wget, unzip.
+#   2. Creates a temporary working directory on remote servers.
+#   3. Downloads and extracts a Tooplate website template.
+#   4. Backs up existing /var/www/html directory if present.
+#   5. Deploys the new website into /var/www/html.
+#   6. Enables and restarts the Apache (httpd) service.
+#   7. Cleans up temporary files after deployment.
+#
+# Exit Codes:
+#   0 : Success
+#   1 : Failure in SSH connection or command execution
+#
+# Notes:
+#   - Update SERVERS array to add/remove target servers.
+#   - Change WEB_URL and WEB_FOLDER to use a different template.
+###############################################################################
+
 set -eou pipefail
 
 # Server details
