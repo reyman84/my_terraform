@@ -1,87 +1,80 @@
 #!/bin/bash
 
-# Exit immediately if a command exits with a non-zero status
-set -e
+# Exit from the script, if any command fails
+set -eou pipefail
 
-# Check ROOT Privileges
+# Check if the script is executed with root user, or normal user
 if [ "$(id -u)" -ne 0 ]; then
-        echo "Please run this script with root (or with sudo)."
+        echo "Please execute the script with root user (or use sudo)."
         exit 1
 fi
 
-# Variable Declaration
+# Variables
 PACKAGES=("apache2" "unzip" "wget")
 SERVICE="apache2"
-TEMP_DIR="/tmp/web_setup"
-URL="https://www.tooplate.com/zip-templates/2122_nano_folio.zip"
-URL_FOLDER="2122_nano_folio"
+WEB_URL="https://www.tooplate.com/zip-templates/2137_barista_cafe.zip"
+URL_FOLDER="2137_barista_cafe"
+TEMP_FOLDER="/tmp/web_setup"
 
-# Installing: $PACKAGES"
-for pkg in "${PACKAGES[@]}"; do
-    if dpkg -s "$pkg" >/dev/null 2>&1; then
-        echo "[OK] $pkg is already installed"
-    else
-        echo "[INFO] Installing $pkg..."
-        apt-get update -y
-        apt-get install -y "$pkg"
-    fi
+
+# Package Installation
+echo "Installing required packages"
+for pkg in "${PACKAGES[@]}";
+do
+        if dpkg -s $pkg > /dev/null 2>&1
+        then
+                echo "[OK] $pkg is already installed..."
+        else
+                echo "Installing $pkg ..."
+                apt-get update -y > /dev/null
+                apt-get install -y $pkg > /dev/null
+                echo "$pkg installed successfully..."
+        fi
 done
-echo "All required packages are installed."
 echo
 
-# Creating temporary folder"
-echo "Creating Temporary folder: $TEMP_DIR"
-mkdir -p $TEMP_DIR
-cd $TEMP_DIR
 
-
-# Downloading website URL
-wget -q $URL
-
-
-# Unzipping URL
-unzip -q $URL_FOLDER.zip > /dev/null
+# Creating $TEMP_FOLDER
+echo "Creating $TEMP_FOLDER"
+mkdir -p $TEMP_FOLDER
+cd $TEMP_FOLDER
 echo
 
-# Taking backup of previous folders"
-if [ -d "/var/www/html" ]; then
-    BACKUP_DIR="/var/www/html_backup_$(date +%F_%H-%M-%S)"
-    echo "📂 Backing up existing /var/www/html to $BACKUP_DIR"
-    mv /var/www/html/ $BACKUP_DIR
+# Downloading and Unpackaging web url
+echo "Downloading and Unpackaging web url"
+wget -q $WEB_URL
+unzip -q $URL_FOLDER.zip
+echo
+
+# Taking backup of /var/www/html
+echo "Taking backup of /var/www/html"
+if [ -d "/var/www/html" ]
+then
+        BACKUP_DIR="/var/www/html_backup_$(date +%F_%H-%M-%S)"
+        mv /var/www/html $BACKUP_DIR
 fi
+echo
 
-# Copy files to /var/www/html
+# Deploying Website
+echo "Deploying website..."
 cp -pr $URL_FOLDER /var/www/html/
 echo
 
-echo "#################################"
-echo "# Checking files in the folders"
-echo "#################################"
-ls -l /var/www/html
-
-# Enabling $SERVICE
-systemctl enable $SERVICE 2> /dev/null
-echo
-
-# Restarting $SERVICE
-echo "#################################"
-echo " Restarting $SERVICE service"
-echo "#################################"
+# Starting $SERVICE service
+echo "Starting $SERVICE service"
 systemctl restart $SERVICE
+systemctl enable $SERVICE > /dev/null 2>&1
 echo
-
-echo "#################################"
-echo "Status of $SERVICE"
-echo "#################################"
-echo "✅ $SERVICE is now: $(systemctl is-active $SERVICE)"
+echo "Status of $SERVICE is: $(systemctl is-active $SERVICE)"
 echo
 
 # Cleanup
-echo "#################################"
-echo "Cleaning $TEMP_DIR"
-echo "#################################"
-rm -rf $TEMP_DIR
-ls /tmp
+echo "Cleanup $TEMP_FOLDER"
+rm -rf $TEMP_FOLDER
 echo
+
+echo "Files in /var/www/html:"
+ls -ltrh /var/www/html
+
 echo
-echo "End of the script"
+echo "End of script"
