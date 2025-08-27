@@ -1,34 +1,41 @@
 # --------------------- Baston Host ---------------------
-/*
-resource "aws_instance" "baston_host" {
+
+resource "aws_instance" "bastion_host" {
+  count                  = 3
   instance_type          = "t2.micro"
-  ami                    = var.ami["amazon_linux_2"]
-  key_name               = aws_key_pair.devops-project.id
+  ami                    = data.aws_ami.linux.id
+  key_name               = aws_key_pair.devops_project.key_name
   subnet_id              = module.vpc.public_subnets[0]
   vpc_security_group_ids = [aws_security_group.bastion_host.id]
 
   tags = {
-    Name = "Baston-Host"
+    Name = "Bastion-Host-${count.index + 1}"
   }
 
-  provisioner "file" {
-    source      = "key-files/web01"
-    destination = "/home/ec2-user/web01"
-  }
+    user_data = <<-EOF
+    #!/bin/bash
+    set -euo pipefail
 
-  connection {
-    type        = "ssh"
-    user        = "ec2-user"
-    private_key = file("key-files/devops-project")
-    host        = self.public_ip
-  }
+    # 1. Create user 'devops' and set password
+    id -u devops &>/dev/null || useradd devops
+    echo "devops:${var.devops_password}" | chpasswd
 
-  provisioner "remote-exec" {
-    inline = [
-      "chmod 400 /home/ec2-user/web01"
-    ]
-  }
-}*/
+    # 2. Add passwordless sudo for devops
+    echo 'devops ALL=(ALL) NOPASSWD:ALL' | tee /etc/sudoers.d/devops >/dev/null
+    chmod 440 /etc/sudoers.d/devops
+    visudo -c -f /etc/sudoers.d/devops  # validate syntax
+
+    # 3. Enable password authentication in sshd
+    sed -i 's/^#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+    sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+
+    # 4. Restart SSH service
+    systemctl restart sshd
+
+    # 5. Set unique hostname per instance
+    hostnamectl set-hostname web0${count.index + 1}
+  EOF
+}
 
 # --------------------- Docker & GIT on Amazon-Linux-2 ---------------------
 /*
@@ -241,7 +248,7 @@ resource "null_resource" "volume_provisioner_slave" {
 
 # --------------------- Jenkins Master ---------------------
 
-resource "aws_instance" "jenkins_master" {
+/*resource "aws_instance" "jenkins_master" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t2.small"
   key_name      = aws_key_pair.devops-project.id
@@ -366,4 +373,4 @@ resource "aws_instance" "sonarqube" {
       #"sudo reboot"
     ]
   }
-}
+}*/
