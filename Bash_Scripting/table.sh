@@ -10,5 +10,5 @@ while [ $i -le 10 ]
 do
     echo "$i x $TAB = $((i * TAB))"
     sleep 2
-    i=$((i + 1))
+    ((i++))
 done
