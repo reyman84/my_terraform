@@ -27,7 +27,7 @@
 #   3. Downloads and extracts a Tooplate website template.
 #   4. Backs up existing /var/www/html directory if present.
 #   5. Deploys the new website into /var/www/html.
-#   6. Enables and restarts the Apache (httpd) service.
+#   6. Enables and restarts the httpd service (apache2 for ubuntu).
 #   7. Cleans up temporary files after deployment.
 #
 # Exit Codes:
@@ -41,62 +41,80 @@
 
 set -eou pipefail
 
-# Server details
+# List of remote servers (IP or hostname)
 SERVERS=("web01" "web02")
 USER="devops"
 
-# Website details
-PACKAGES=("httpd" "wget" "unzip")
-SVC="httpd"
-WEB_URL="https://www.tooplate.com/zip-templates/2137_barista_cafe.zip"
-WEB_FOLDER="2137_barista_cafe"
-TEMP_FOLDER="/tmp/web_setup"
+for HOST in "${SERVERS[@]}"; do
+        echo "----- Logging to $HOST -----"
+        ssh -o StrictHostKeyChecking=no "$USER@$HOST" '
 
-for HOST in "${SERVERS[@]}";
-do
-    ssh -o StrictHostKeyChecking=no "$USER@$HOST" "
-        echo '################## Checking if required packages are installed on $HOST... ##################'
+                echo -e "\nEnsure required packages are installed and httpd is running..."
+                # Required packages
+                PACKAGE=("httpd" "unzip" "wget")
+                SERVICE="httpd"
+                for pkg in "${PACKAGE[@]}"; do
+                        if ! rpm -q $pkg > /dev/null 2>&1
+                        then
+                                echo "Installing $pkg..."
+                                sudo yum install -y $pkg &>/dev/null
+                        else
+                                echo "[OK] $pkg is already installed"
+                        fi
+                done
 
-        for pkg in ${PACKAGES[@]}; do
-            if rpm -q \$pkg > /dev/null 2>&1; then
-                echo \"[OK] \$pkg is already installed...\"
-            else
-                echo \"Installing \$pkg...\"
-                sudo yum install -y \$pkg > /dev/null 2>&1
-            fi
-        done
+                # Ensure httpd is running
+                if systemctl is-active --quiet $SERVICE > /dev/null 2>&1
+                then
+                        echo "[OK] $SERVICE is already running"
+                else
+                        echo "Starting $SERVICE..."
+                        sudo systemctl restart $SERVICE
+                        echo "Status of $SERVICE is: $(systemctl is-active $SERVICE)"
+                fi
 
-        echo -e '\n################## Deploying website on $HOST ##################'
+                # Ensure httpd is enabled at boot
+                if systemctl is-enabled --quiet $SERVICE > /dev/null 2>&1
+                then
+                        echo "[OK] $SERVICE is already enabled at boot..."
+                else
+                        echo "$SERVICE is not enabbled at boot"
+                        echo "Enabling $SERVICE at boot..."
+                        sudo systemctl enable $SERVICE > /dev/null 2>&1
+                fi
 
-        # Creating $TEMP_FOLDER
-        sudo mkdir -p $TEMP_FOLDER
-        cd $TEMP_FOLDER
+                echo -e "\n----- Deploying Website -----"
+                # Website Variables
+                WEB_URL="https://www.tooplate.com/zip-templates/2137_barista_cafe.zip"
+                WEB_DIR="2137_barista_cafe"
+                TEMP_DIR="/tmp/web-setup"
 
-        # Downloading and Unpackaging of WEB URL
-        sudo wget -q ${WEB_URL} -O ${WEB_FOLDER}.zip
-        sudo unzip -q ${WEB_FOLDER}.zip
+                mkdir -p $TEMP_DIR
+                cd $TEMP_DIR
 
-        # Taking backup of /var/www/html, if exists
-        if [ -d '/var/www/html' ]; then
-            DATE=\$(date +%F_%H-%M-%S)
-            BACKUP_FOLDER=\"/var/www/html_backup_\$DATE\"
-            sudo mv /var/www/html \$BACKUP_FOLDER
-        fi
+                wget $WEB_URL &> /dev/null
+                unzip $WEB_DIR.zip > /dev/null
 
-        echo -e '\nDeploying website'
-        sudo cp -pr $WEB_FOLDER /var/www/html
+                # Backup of /var/www/html
+                if [ -d "/var/www/html" ]; then
+                        BACKUP_DIR="/var/www/html_BACKUP_$(date +%F_%H-%M-%S)"
+                        echo -e "\nBackup of /var/www/html"
+                        sudo mv /var/www/html $BACKUP_DIR
+                fi
 
-        # Restarting $SVC
-        sudo systemctl enable $SVC > /dev/null 2>&1
-        sudo systemctl restart $SVC
+                sudo cp -pr ${WEB_DIR} /var/www/html
 
-        echo -e '\nStatus of $SVC is:'
-        systemctl is-active $SVC
+                echo -e "\nRestarting $SERVICE"
+                sudo systemctl restart $SERVICE
 
-        echo -e '\nClean-up'
-        sudo rm -rf $TEMP_FOLDER
+                echo -e "\nStatus of $SERVICE is: $(systemctl is-active $SERVICE)"
 
-        #echo -e '\nListing deployed files:'
-        #ls -ltrh /var/www/html | grep -v total
-    "
+                # Cleanup
+                echo -e "\nCleaning up temporary files..."
+                rm -rf $TEMP_DIR
+
+                echo -e "\nListing deployed files:"
+                ls -ltrh /var/www/html | grep -v total
+                echo -e "\n------------------------------------------------ Completed on '"$HOST"' ------------------------------------------------"
+        '
 done
