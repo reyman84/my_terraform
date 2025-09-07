@@ -1,0 +1,59 @@
+- name: Install "{{AL2}}" on Amazon_linux
+  ansible.builtin.yum:
+    name: "{{AL2}}"
+    state: present
+  when: ansible_distribution == 'Amazon'
+
+- name: Install "{{UBU}}" on Ubuntu
+  ansible.builtin.apt:
+    name: "{{item}}"
+    state: present
+    update_cache: yes
+  when: ansible_distribution == 'Ubuntu'
+  loop:
+    - "{{UBU1}}"
+    - "{{UBU2}}"
+
+- name: Start "{{AL2}}" on service Amazon_linux
+  ansible.builtin.service:
+    name: "{{AL2}}"
+    state: started
+    enabled: yes
+  when: ansible_distribution == 'Amazon'
+
+- name: Start "{{UBU1}}" service on Ubuntu
+  ansible.builtin.service:
+    name: "{{UBU1}}"
+    state: started
+    enabled: yes
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Download Website from Internet in /tmp folder
+  ansible.builtin.get_url:
+    url: "{{ WEB_URL }}"
+    dest: /tmp
+    force: no
+
+- name: Unachive the "{{ WEB_URL}}.zip" in /tmp folder
+  ansible.builtin.unarchive:
+    src: "/tmp/{{ ZIP_FILE }}"
+    dest: /tmp
+    remote_src: yes
+    creates: "/tmp/{{ WEB_DIR }}/index.html"
+
+- name: Copy unzipped files to /var/www/html 
+  ansible.builtin.copy:
+    src: "/tmp/{{ WEB_DIR }}/."
+    dest: /var/www/html/.
+    remote_src: yes
+  notify: 
+    - reStart "{{AL2}}" on service Amazon_linux
+    - reStart "{{UBU1}}" service on Ubuntu
+
+- name: Cleanup - remove the folder
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "/tmp/{{ ZIP_FILE }}"
+    - "/tmp/{{ WEB_DIR }}"

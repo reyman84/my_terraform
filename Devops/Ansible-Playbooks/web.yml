@@ -1,0 +1,94 @@
+---
+# ==============================================================================
+# Playbook Metadata
+# ==============================================================================
+# Title        : Multi-OS Apache Web Server Installation & Static Site Deployment
+# Description  : Installs Apache HTTPD (Amazon Linux) or Apache2 (Ubuntu),
+#                deploys a static website from a zip template to /var/www/html,
+#                cleans up extracted folders, and restarts the web service only
+#                when changes occur.
+# Author       : Ramandeep Singh (DevOps Engineer)
+# Version      : 1.0
+# Date         : 2025-09-04
+# Tags         : apache, httpd, apache2, webserver, linux, ansible, static-site
+# Tested On    : Amazon Linux 2, Ubuntu 18.04/20.04/22.04
+# ==============================================================================
+
+- name: Install web server on Multi OS with variables
+  hosts: webservers
+  gather_facts: yes
+  become: yes
+
+  vars:
+    URL: https://www.tooplate.com/zip-templates/2137_barista_cafe.zip
+    TMP_FILE: /tmp/2137_barista_cafe.zip
+    WEBROOT: /var/www/html
+    SITE_DIR: 2137_barista_cafe   # extracted folder name
+
+    web_packages:
+      Amazon: [httpd, unzip, wget]
+      Ubuntu: [apache2, unzip, wget]
+
+  tasks:
+# ================= Using a dictionary to map OS to packages =================  
+    - name: Install required packages (multi-OS)
+      ansible.builtin.package:
+        name: "{{ web_packages[ansible_distribution] }}"
+        state: present
+        update_cache: yes
+      when: ansible_distribution in web_packages
+
+# ================= Using loops and passing a list directly =================
+    # ------- Using a loop -------
+   #- name: Install required packages on Ubuntu
+      #ansible.builtin.apt:
+        #name: "{{ item }}"
+        #state: present
+        #update_cache: yes
+      #when: ansible_distribution == "Ubuntu"
+      #loop:
+        #- apache2
+        # Supporting packages - just to test loops
+       #- unzip
+       #- wget
+      #when: false
+
+    # ------- Passing a list directly -------
+    #- name: Install required packages on Amazon Linux
+      #ansible.builtin.yum:
+       #name: [ httpd, unzip, wget ]
+       #state: present
+      #when: ansible_distribution == "Amazon"
+      #when: false
+# ==============================================================================
+    - name: Download website zip file (only if changed remotely)
+      ansible.builtin.get_url:
+        url: "{{ URL }}"
+        dest: "{{ TMP_FILE }}"
+        mode: '0644'
+        force: no      # don’t re-download if same file
+
+    - name: Unarchive website into /var/www/html (skip if index.html already exists)
+      ansible.builtin.unarchive:
+        src: "{{ TMP_FILE }}"
+        dest: "{{ WEBROOT }}"
+        remote_src: yes
+        creates: "{{ WEBROOT }}/index.html"    # idempotence
+      notify: Restart web service
+
+    - name: Move extracted content up one level (only first time)
+      ansible.builtin.command: >
+        cp -a {{ WEBROOT }}/{{ SITE_DIR }}/. {{ WEBROOT }}/
+      args:
+        creates: "{{ WEBROOT }}/index.html"    # idempotence
+
+    - name: Remove leftover folder
+      ansible.builtin.file:
+        path: "{{ WEBROOT }}/{{ SITE_DIR }}"
+        state: absent
+
+  handlers:
+    - name: Restart web service
+      ansible.builtin.service:
+        name: "{{ 'httpd' if ansible_distribution == 'Amazon' else 'apache2' }}"
+        state: restarted

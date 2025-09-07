@@ -1,0 +1,74 @@
+---
+# ==============================================================================
+# Playbook Metadata
+# ==============================================================================
+# Title        : MariaDB 10.5 Installation and Database Setup
+# Description  : Installs MariaDB 10.5 server on Amazon Linux, ensures it is
+#                running and enabled, installs Python dependencies (pip3 and
+#                PyMySQL), creates a database (`accounts`), and provisions a
+#                user (`vprofile`) with full privileges on the database.
+# Author       : Ramandeep Singh (DevOps Engineer)
+# Version      : 1.1
+# Date         : 2025-09-02
+# Tags         : mariadb, mysql, database, ansible, amazonlinux2, amazonlinux2023
+# Tested On    : Amazon Linux 2, Amazon Linux 2023
+# Requirements : 
+#   - community.mysql collection
+#   - Root/sudo privileges
+#   - Internet access (for package and pip installation)
+# ==============================================================================
+
+- name: Installing Mariadb on Amazon Linux 2
+  hosts: dbservers
+  gather_facts: no
+  become: yes
+  vars:
+    dbname: accounts
+    dbuser: vprofile
+    dbpass: Admin123456
+  tasks:
+    - debug:
+        msg: "Database name is {{dbname}}"
+    - debug:
+        var: dbuser
+
+    - name: Install mariadb105-server
+      ansible.builtin.yum:
+        name: mariadb105-server
+        state: present
+
+    - name: Start and enable mariadb
+      ansible.builtin.service:
+        name: mariadb
+        state: started
+        enabled: yes
+    - name: Ensure pip3 is installed
+      ansible.builtin.package:
+        name: python3-pip
+        state: present
+
+    - name: Install PyMySQL via pip
+      ansible.builtin.pip:
+        name: PyMySQL
+        executable: pip3
+
+    - name: Create database "{{dbname}}"
+      community.mysql.mysql_db:
+        name: "{{dbname}}"
+        state: present
+        login_unix_socket: /var/lib/mysql/mysql.sock
+
+    - name: Create database user and password with all database privileges
+      community.mysql.mysql_user:
+        name: "{{dbuser}}"
+        password: "{{dbpass}}"
+        host: '%'
+        priv: 'accounts.*:ALL'
+        state: present
+        login_unix_socket: /var/lib/mysql/mysql.sock
+        column_case_sensitive: false
+      register: dbout
+
+    - name: Print dbout variable
+      debug:
+        var: dbout
