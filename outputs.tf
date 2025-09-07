@@ -1,4 +1,41 @@
-/*output "Jenkins_Master" {
+output "bastion_host_public_ips" {
+  description = "Public IPs of all Bastion Hosts"
+  value       = [for instance in aws_instance.bastion_host : instance.public_ip]
+}
+
+output "bastion_host_private_ips" {
+  description = "Private IPs of all Bastion Hosts"
+  value       = [for instance in aws_instance.bastion_host : instance.private_ip]
+}
+
+output "Ansible_CM_Public_ip" {
+  description = "Generates the Public IP of docker"
+  value       = aws_instance.ansible_cm.public_ip
+}
+
+output "Ansible_CM_Private_ip" {
+  description = "Generates the Private IP of docker"
+  value       = aws_instance.ansible_cm.private_ip
+}
+
+output "Ansible_Ubuntu_Public_ip" {
+  description = "Generates the Public IP of docker"
+  value       = aws_instance.ansible_ubuntu.public_ip
+}
+
+output "Ansible_Ubuntu_Private_ip" {
+  description = "Generates the Private IP of docker"
+  value       = aws_instance.ansible_ubuntu.private_ip
+}
+
+/*output "Ansible_Hosts_Private_ips" {
+  value = {
+    for name, inst in aws_instance.ansible_hosts :
+    name => inst.private_ip
+  }
+}
+
+output "Jenkins_Master" {
   description = "Public IPs of Jenkins Master"
   value       = aws_instance.jenkins_master.public_ip
 }
@@ -38,10 +75,7 @@ output "Docker_Public_ip" {
   value       = aws_instance.docker.public_ip
 }
 
-output "Baston_Host_Public_ip" {
-  description = "Generates the Public IP of the Baston Host"
-  value       = aws_instance.baston_host.public_ip
-}
+
 
 output "bastion_sg_id" {
   value = aws_security_group.bastion_host.id
@@ -53,16 +87,4 @@ output "web_sg_id" {
 
 output "alb_sg_id" {
   value = aws_security_group.http.id
-}
-
-output "Ansible_Hosts_Private_ips" {
-  value = {
-    for name, inst in aws_instance.ansible_hosts :
-    name => inst.private_ip
-  }
-}
-
-output "Ansible_CM_Public_ip" {
-  description = "Generates the Public IP of docker"
-  value       = aws_instance.ansible_cm.public_ip
 }*/

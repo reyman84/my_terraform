@@ -1,7 +1,7 @@
 # --------------------- Baston Host ---------------------
 
 resource "aws_instance" "bastion_host" {
-  count                  = 3
+  count                  = 2
   instance_type          = "t2.micro"
   ami                    = data.aws_ami.linux.id
   key_name               = aws_key_pair.devops_project.key_name
@@ -9,32 +9,8 @@ resource "aws_instance" "bastion_host" {
   vpc_security_group_ids = [aws_security_group.bastion_host.id]
 
   tags = {
-    Name = "Bastion-Host-${count.index + 1}"
+    Name = "vprofile-web0${count.index + 1}"
   }
-
-    user_data = <<-EOF
-    #!/bin/bash
-    set -euo pipefail
-
-    # 1. Create user 'devops' and set password
-    id -u devops &>/dev/null || useradd devops
-    echo "devops:${var.devops_password}" | chpasswd
-
-    # 2. Add passwordless sudo for devops
-    echo 'devops ALL=(ALL) NOPASSWD:ALL' | tee /etc/sudoers.d/devops >/dev/null
-    chmod 440 /etc/sudoers.d/devops
-    visudo -c -f /etc/sudoers.d/devops  # validate syntax
-
-    # 3. Enable password authentication in sshd
-    sed -i 's/^#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
-    sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
-
-    # 4. Restart SSH service
-    systemctl restart sshd
-
-    # 5. Set unique hostname per instance
-    hostnamectl set-hostname web0${count.index + 1}
-  EOF
 }
 
 # --------------------- Docker & GIT on Amazon-Linux-2 ---------------------
@@ -78,62 +54,46 @@ resource "aws_instance" "docker" {
 
 # --------------------- Ansible Control Machine on Ubuntu ---------------------
 
-/*resource "aws_instance" "ansible_cm" {
-  ami                    = var.ami["ubuntu"]
+resource "aws_instance" "ansible_cm" {
+  ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.ansible.id
   subnet_id              = module.vpc.public_subnets[2]
   vpc_security_group_ids = [aws_security_group.bastion_host.id]
 
+  tags = {
+    Name = "Controller"
+  }
+
   connection {
     type        = "ssh"
     user        = "ubuntu"
-    private_key = file("key-files/ansible") # This is your PRIVATE key
+    private_key = file("key-files/ansible")
     host        = self.public_ip
-  }
-
-  provisioner "file" {
-    source      = "key-files/ansible"
-    destination = "/home/ubuntu/clientkey"
-  }
-
-  provisioner "file" {
-    source      = "scripts/inventory"
-    destination = "/home/ubuntu/inventory"
-  }
-
-  provisioner "file" {
-    source      = "scripts/ansible.sh"
-    destination = "/home/ubuntu/ansible.sh"
   }
 
   provisioner "remote-exec" {
     inline = [
-      #"sudo apt-get update -y",
-      #"sudo apt-get install -y dos2unix",
-      #"dos2unix /home/ubuntu/ansible.sh",
-      "sudo chmod +x /home/ubuntu/ansible.sh",
-      "sudo sh /home/ubuntu/ansible.sh"
+      "sudo apt-get update -y > /dev/null",
+      "sudo apt-get install -y software-properties-common > /dev/null",
+      "sudo add-apt-repository --yes --update ppa:ansible/ansible > /dev/null",
+      "sudo apt-get install -y ansible > /dev/null",
+      "ansible --version"
     ]
   }
+}
 
-  # provisioner "remote-exec" {
-  #  inline = [
-  #    # Execution as "root" user
-  #    "sudo -i -u root bash -c 'apt update -y && apt install software-properties-common -y && add-apt-repository --yes --update ppa:ansible/ansible && apt install ansible -y && ansible --version && chmod 400 /home/ubuntu/clientkey && cd /etc/ansible && mv ansible.cfg ansible.cfg_bkp && sudo ansible-config init --disabled -t all > ansible.cfg && sed -i \"s/^;host_key_checking=True/host_key_checking=False/\" ansible.cfg'",
-  # 
-  #    # Execution as "ubuntu" user with "sudo" access
-  #    "mkdir ~/vprofile && cd ~/vprofile",
-  #    "sudo apt-get update -y && sudo apt-get install -y git openssh-client",
-  #    "ssh-keyscan github.com >> ~/.ssh/known_hosts",
-  #    "git clone https://github.com/reyman84/ansible.git"
-  #  ]
-  #}
+resource "aws_instance" "ansible_ubuntu" {
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = "t2.micro"
+  key_name               = aws_key_pair.devops_project.id
+  subnet_id              = module.vpc.public_subnets[1]
+  vpc_security_group_ids = [aws_security_group.bastion_host.id]
 
   tags = {
-    Name = "Ansible Control Machine"
+    Name = "vprofile-db01"
   }
-}*/
+}
 
 # --------------------- Ansible Host on 2 different AMIs ---------------------
 
@@ -279,8 +239,8 @@ resource "null_resource" "volume_provisioner_slave" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo apt update -y",
-      "sudo apt install -y dos2unix",
+      "sudo apt-get update -y",
+      "sudo apt-get install -y dos2unix",
       "dos2unix /home/ubuntu/jenkins_master.sh",
       "sudo chmod 755 /home/ubuntu/jenkins_master.sh",
       "sudo sh /home/ubuntu/jenkins_master.sh",
@@ -365,8 +325,8 @@ resource "aws_instance" "sonarqube" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo apt update",
-      "sudo apt install -y dos2unix",
+      "sudo apt-get update",
+      "sudo apt-get install -y dos2unix",
       "sudo dos2unix /home/ubuntu/sonar-setup.sh",
       "sudo chmod 755 /home/ubuntu/sonar-setup.sh",
       "sudo sh /home/ubuntu/sonar-setup.sh" #,
