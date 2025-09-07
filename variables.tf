@@ -1,11 +1,11 @@
 variable "region" {
   description = "Provides the AWS region to implement changes"
-  default = "us-east-1"
+  default     = "us-east-1"
 }
 
 variable "trusted_ip" {
   description = "IP address of my Laptop's IP"
-  default = "49.207.50.91/32"
+  default     = "49.207.50.91/32"
 }
 
 variable "VPC_NAME" {
@@ -64,4 +64,10 @@ variable "PROJECT" {
 variable "instance_count" {
   description = "Number of instances"
   type        = map(string)
+}
+
+variable "devops_password" {
+  description = "Password for devops user"
+  type        = string
+  sensitive   = true
 }*/
