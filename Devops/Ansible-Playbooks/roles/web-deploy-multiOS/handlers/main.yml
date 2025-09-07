@@ -1,0 +1,13 @@
+- name: reStart "{{AL2}}" on service Amazon_linux
+  ansible.builtin.service:
+    name: "{{AL2}}"
+    state: restarted
+    enabled: yes
+  when: ansible_distribution == 'Amazon'
+
+- name: reStart "{{UBU1}}" service on Ubuntu
+  ansible.builtin.service:
+    name: "{{UBU1}}"
+    state: restarted
+    enabled: yes
+  when: ansible_distribution == 'Ubuntu'
