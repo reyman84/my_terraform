@@ -1,7 +1,7 @@
 # --------------------- Baston Host ---------------------
 
-resource "aws_instance" "bastion_host" {
-  count                  = 2
+/*resource "aws_instance" "bastion_host" {
+  #count                  = 2
   instance_type          = "t2.micro"
   ami                    = data.aws_ami.linux.id
   key_name               = aws_key_pair.devops_project.key_name
@@ -9,140 +9,63 @@ resource "aws_instance" "bastion_host" {
   vpc_security_group_ids = [aws_security_group.bastion_host.id]
 
   tags = {
-    Name = "vprofile-web0${count.index + 1}"
+    Name = "Bastion-Host"
+    #Name = "vprofile-web0${count.index + 1}"
+
   }
-}
+}*/
 
 # --------------------- Docker & GIT on Amazon-Linux-2 ---------------------
-/*
-resource "aws_instance" "docker" {
-  instance_type = "t2.medium"               # t2-medium is "Chargeable"
-  ami           = var.ami["amazon_linux_2"]
-  key_name      = aws_key_pair.devops-project.id
+
+/*resource "aws_instance" "docker" {
+  instance_type = "t2.micro"               # t2-micro is "Chargeable"
+  ami           = data.aws_ami.linux.id
+  key_name      = aws_key_pair.devops_project.key_name
   subnet_id     = module.vpc.public_subnets[1]
-  vpc_security_group_ids = [
-    aws_security_group.bastion_host.id,
-    aws_security_group.http.id
-  ]
+  vpc_security_group_ids = [ aws_security_group.bastion_host.id ]
 
   tags = {
     Name = "Docker"
   }
 
-  provisioner "file" {
-    source      = "scripts/docker.sh"
-    destination = "/home/ec2-user/docker.sh"
-  }
+  #provisioner "file" {
+  #  source      = "scripts/docker.sh"
+  #  destination = "/home/ec2-user/docker.sh"
+  #}
 
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = file("key-files/devops-project")
+    private_key = file("key-files/devops_project")
     host        = self.public_ip
   }
 
   provisioner "remote-exec" {
     inline = [
-      "sleep 20",
-      "sudo yum install -y dos2unix",
-      "dos2unix /home/ec2-user/docker.sh",
-      "sudo chmod +x /home/ec2-user/docker.sh",
-      "sudo sh /home/ec2-user/docker.sh"
+      # Install Docker & Git
+      "sudo yum update -y",
+      "sudo yum install -y docker git",
+      "sudo systemctl start docker",
+      "sudo systemctl enable docker",
+      # Install Docker Compose
+      #"sudo curl -SL https://github.com/docker/compose/releases/download/v2.35.0/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose",
+      #"sudo chmod +x /usr/local/bin/docker-compose",
+      #"sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose",
+      # Add ec2-user to the docker group so you can execute Docker commands without using sudo
+      "sudo usermod -aG docker ec2-user"
     ]
-  }
-}*/
-
-# --------------------- Ansible Control Machine on Ubuntu ---------------------
-
-resource "aws_instance" "ansible_cm" {
-  ami                    = data.aws_ami.ubuntu.id
-  instance_type          = "t2.micro"
-  key_name               = aws_key_pair.ansible.id
-  subnet_id              = module.vpc.public_subnets[2]
-  vpc_security_group_ids = [aws_security_group.bastion_host.id]
-
-  tags = {
-    Name = "Controller"
-  }
-
-  connection {
-    type        = "ssh"
-    user        = "ubuntu"
-    private_key = file("key-files/ansible")
-    host        = self.public_ip
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo apt-get update -y > /dev/null",
-      "sudo apt-get install -y software-properties-common > /dev/null",
-      "sudo add-apt-repository --yes --update ppa:ansible/ansible > /dev/null",
-      "sudo apt-get install -y ansible > /dev/null",
-      "ansible --version"
-    ]
-  }
-}
-
-resource "aws_instance" "ansible_ubuntu" {
-  ami                    = data.aws_ami.ubuntu.id
-  instance_type          = "t2.micro"
-  key_name               = aws_key_pair.devops_project.id
-  subnet_id              = module.vpc.public_subnets[1]
-  vpc_security_group_ids = [aws_security_group.bastion_host.id]
-
-  tags = {
-    Name = "vprofile-db01"
-  }
-}
-
-# --------------------- Ansible Host on 2 different AMIs ---------------------
-
-/*locals {
-  instances = {
-    "Amazon_Linux-Ansible" = var.ami["amazon_linux_2"]
-    "Ubuntu-Ansible"       = var.ami["ubuntu"]
-  }
-}
-
-locals {
-  subnet_id = {
-    "Amazon_Linux-Ansible" = module.vpc.public_subnets[1]
-    "Ubuntu-Ansible"       = module.vpc.public_subnets[2]
-  }
-}
-
-resource "aws_instance" "ansible_hosts" {
-  for_each = local.instances
-  ami      = each.value
-
-  instance_type = "t2.micro"
-  key_name      = aws_key_pair.ansible.id
-
-  subnet_id = local.subnet_id[each.key]
-
-  vpc_security_group_ids = [
-    aws_security_group.bastion_host.id,
-    aws_security_group.ssh_from_bastion_host.id,
-    aws_security_group.All_Traffic_enabled.id
-  ]
-
-  tags = {
-    Name = each.key
   }
 }*/
 
 # --------------------- Jenkins Slave ---------------------
 
 /*resource "aws_instance" "jenkins_slave" {
-  ami           = var.ami["amazon_linux_2"]
+  ami = data.aws_ami.linux.id
   instance_type = "t2.micro"
-  key_name      = aws_key_pair.devops-project.id
+  key_name      = aws_key_pair.devops_project.key_name
   subnet_id     = module.vpc.public_subnets[1]
 
-  vpc_security_group_ids = [
-    aws_security_group.bastion_host.id,
-    aws_security_group.ssh_from_bastion_host.id
-  ]
+  vpc_security_group_ids = [ aws_security_group.bastion_host.id ]
 
   tags = {
     Name = "Jenkins_Slave"
@@ -186,7 +109,7 @@ resource "null_resource" "volume_provisioner_slave" {
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = file("key-files/devops-project")
+    private_key = file("key-files/devops_project")
     host        = aws_instance.jenkins_slave.public_ip
   }
 
@@ -211,7 +134,7 @@ resource "null_resource" "volume_provisioner_slave" {
 /*resource "aws_instance" "jenkins_master" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t2.small"
-  key_name      = aws_key_pair.devops-project.id
+  key_name      = aws_key_pair.devops_project.key_name
   subnet_id     = module.vpc.public_subnets[0]
   vpc_security_group_ids = [ aws_security_group.jenkins_master.id]
 
@@ -233,7 +156,7 @@ resource "null_resource" "volume_provisioner_slave" {
   connection {
     type        = "ssh"
     user        = "ubuntu"
-    private_key = file("key-files/devops-project")
+    private_key = file("key-files/devops_project")
     host        = aws_instance.jenkins_master.public_ip
   }
 
@@ -247,14 +170,14 @@ resource "null_resource" "volume_provisioner_slave" {
       "sudo reboot"
     ]
   }
-}
+}*/
 
 # --------------------- Nexus Setup ---------------------
 
-resource "aws_instance" "nexus" {
+/*resource "aws_instance" "nexus" {
   ami           = data.aws_ami.linux.id
   instance_type = "t2.medium"
-  key_name      = aws_key_pair.devops-project.id
+  key_name      = aws_key_pair.devops_project.key_name
   subnet_id     = module.vpc.public_subnets[1]
 
   vpc_security_group_ids = [
@@ -279,7 +202,7 @@ resource "aws_instance" "nexus" {
   connection {
     type        = "ssh"
     user        = "ec2-user"
-    private_key = file("key-files/devops-project")
+    private_key = file("key-files/devops_project")
     host        = aws_instance.nexus.public_ip
   }
 
@@ -292,14 +215,14 @@ resource "aws_instance" "nexus" {
       "sudo reboot"
     ]
   }
-}
+}*/
 
 # --------------------- Sonarqube Setup ---------------------
 
-resource "aws_instance" "sonarqube" {
+/*resource "aws_instance" "sonarqube" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t2.medium"
-  key_name      = aws_key_pair.devops-project.id
+  key_name      = aws_key_pair.devops_project.key_name
   subnet_id     = module.vpc.public_subnets[2]
 
   vpc_security_group_ids = [
@@ -319,7 +242,7 @@ resource "aws_instance" "sonarqube" {
   connection {
     type        = "ssh"
     user        = "ubuntu"
-    private_key = file("key-files/devops-project")
+    private_key = file("key-files/devops_project")
     host        = aws_instance.sonarqube.public_ip
   }
 
@@ -331,6 +254,194 @@ resource "aws_instance" "sonarqube" {
       "sudo chmod 755 /home/ubuntu/sonar-setup.sh",
       "sudo sh /home/ubuntu/sonar-setup.sh" #,
       #"sudo reboot"
+    ]
+  }
+}*/
+
+# --------------------- Ansible Control Machine on Ubuntu ---------------------
+
+/*resource "aws_instance" "ansible_controller_ubuntu" {
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = "t2.micro"
+  key_name               = aws_key_pair.ansible.id
+  subnet_id              = module.vpc.public_subnets[0]
+  vpc_security_group_ids = [aws_security_group.bastion_host.id]
+
+  tags = {
+    Name = "Controller"
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    private_key = file("key-files/ansible")
+    host        = self.public_ip
+  }
+
+  provisioner "file" {
+    source      = "Devops/Ansible-Playbooks/inventory"
+    destination = "/tmp/inventory"
+  }
+
+  provisioner "file" {
+    source      = "Devops/Ansible-Playbooks/ansible.cfg"
+    destination = "/tmp/ansible.cfg"
+  }
+
+  provisioner "file" {
+    source      = "key-files/id_ed25519"
+    destination = "/tmp/id_ed25519"
+  }
+
+  provisioner "file" {
+    source      = "key-files/id_ed25519.pub"
+    destination = "/tmp/id_ed25519.pub"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      # Install Ansible
+      "sudo apt-get update -y > /dev/null",
+      "sudo apt-get install -y software-properties-common > /dev/null",
+      "sudo add-apt-repository --yes --update ppa:ansible/ansible > /dev/null",
+      "sudo apt-get install -y ansible > /dev/null",
+      "ansible --version",
+      "sleep 5",
+      
+      # Create devops user and setup Ansible repo
+      # 1. Ensure devops user exists
+      "sudo useradd -m -s /bin/bash devops || true",
+      "echo 'devops ALL=(ALL) NOPASSWD:ALL' | sudo tee /etc/sudoers.d/devops",
+      "sudo chmod 440 /etc/sudoers.d/devops",
+
+      # 2. Create .ssh directory with correct perms
+      "sudo mkdir -p /home/devops/.ssh",
+      "sudo chmod 700 /home/devops/.ssh",
+      "sudo chown devops:devops /home/devops/.ssh",
+
+      # 3. Copy public key into authorized_keys
+      "sudo cp -pr /tmp/id_ed25519* /home/devops/.ssh/",
+      "sudo chmod 600 /home/devops/.ssh/id_ed25519",
+      "sudo chmod 644 /home/devops/.ssh/id_ed25519.pub",
+      "sudo chown -R devops:devops /home/devops/.ssh",
+
+      # 4. Enable password authentication (if needed) and restart ssh
+      "sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config",
+      "sudo systemctl restart ssh || sudo systemctl restart sshd",
+
+      # 5. (optional) set hostname
+      "sudo hostnamectl set-hostname controller",
+
+      # 6. Setup Ansible repo / inventory / logfile
+      "sudo mkdir -p /home/devops/ansible-repo",
+      "sudo mv /tmp/inventory /home/devops/ansible-repo/inventory",
+      "sudo mv /tmp/ansible.cfg /home/devops/ansible-repo/ansible.cfg",
+      "sudo chown -R devops:devops /home/devops/ansible-repo",
+      "sudo chmod 644 /home/devops/ansible-repo/ansible.cfg",
+      "sudo touch /var/log/ansible.log",
+      "sudo chown devops:devops /var/log/ansible.log"
+    ]
+  }
+}
+
+# --------------------- Ansible Remote host - Ubuntu ---------------------
+/*resource "aws_instance" "ansible_host_ubuntu" {
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = "t2.micro"
+  key_name               = aws_key_pair.devops_project.key_name
+  subnet_id              = module.vpc.public_subnets[1]
+  vpc_security_group_ids = [aws_security_group.bastion_host.id]
+
+  tags = {
+    Name = "ansible_node_ubuntu"
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    private_key = file("key-files/devops_project")
+    host        = self.public_ip
+  }
+
+  provisioner "file" {
+    source      = "key-files/id_ed25519.pub"
+    destination = "/tmp/id_ed25519.pub"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      # 1. Ensure devops user exists
+      "sudo useradd -m -s /bin/bash devops || true",
+      "echo 'devops ALL=(ALL) NOPASSWD:ALL' | sudo tee /etc/sudoers.d/devops",
+      "sudo chmod 440 /etc/sudoers.d/devops",
+
+      # 2. Create .ssh directory with correct perms
+      "sudo mkdir -p /home/devops/.ssh",
+      "sudo chmod 700 /home/devops/.ssh",
+      "sudo chown devops:devops /home/devops/.ssh",
+
+      # 3. Copy public key into authorized_keys
+      "sudo cp /tmp/id_ed25519.pub /home/devops/.ssh/authorized_keys",
+      "sudo chmod 600 /home/devops/.ssh/authorized_keys",
+      "sudo chown devops:devops /home/devops/.ssh/authorized_keys",
+
+      # 4. Enable password authentication (if needed) and restart ssh
+      "sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config",
+      "sudo systemctl restart ssh",
+
+      # 5. (optional) set hostname
+      "sudo hostnamectl set-hostname ansible-ubuntu"
+    ]
+  }
+}*/
+
+# --------------------- Ansible Remote host - Amazon Linux ---------------------
+/*resource "aws_instance" "ansible_host_amazonlinux" {
+  ami                    = data.aws_ami.linux.id
+  instance_type          = "t2.micro"
+  key_name               = aws_key_pair.devops_project.key_name
+  subnet_id              = module.vpc.public_subnets[2]
+  vpc_security_group_ids = [aws_security_group.bastion_host.id]
+
+  tags = {
+    Name = "ansible_node_Linux"
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ec2-user"
+    private_key = file("key-files/devops_project")
+    host        = self.public_ip
+  }
+
+  provisioner "file" {
+    source      = "key-files/id_ed25519.pub"
+    destination = "/tmp/id_ed25519.pub"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      # 1. Ensure devops user exists
+      "sudo useradd -m -s /bin/bash devops || true",
+      "echo 'devops ALL=(ALL) NOPASSWD:ALL' | sudo tee /etc/sudoers.d/devops",
+      "sudo chmod 440 /etc/sudoers.d/devops",
+
+      # 2. Create .ssh directory with correct perms
+      "sudo mkdir -p /home/devops/.ssh",
+      "sudo chmod 700 /home/devops/.ssh",
+      "sudo chown devops:devops /home/devops/.ssh",
+
+      # 3. Copy public key into authorized_keys
+      "sudo cp /tmp/id_ed25519.pub /home/devops/.ssh/authorized_keys",
+      "sudo chmod 600 /home/devops/.ssh/authorized_keys",
+      "sudo chown devops:devops /home/devops/.ssh/authorized_keys",
+
+      # 4. Enable password authentication (if needed) and restart ssh
+      "sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config",
+      "sudo systemctl restart sshd",
+
+      # 5. (optional) set hostname
+      "sudo hostnamectl set-hostname ansible-linux"
     ]
   }
 }*/

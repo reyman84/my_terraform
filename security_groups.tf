@@ -6,42 +6,29 @@
 # SSH from my IP (For Bastion host, Ansible Controll Machine, Jenkins Master)
 
 resource "aws_security_group" "bastion_host" {
-  name        = "Bastion_Host"
-  description = "Allow SSH connection from Trusted IP"
-  vpc_id      = module.vpc.vpc_id
-
-  ingress {
-    description = "Allow SSH from Trusted IP"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.trusted_ip]
-  }
-
-  ingress {
-    description = "Allow HTTP from Trusted IP"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = [var.trusted_ip]
-  }
+  name   = "Bastion_Host"
+  vpc_id = module.vpc.vpc_id
 
   egress {
-    description      = "Allow all outbound traffic"
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
-    Name = "Bastion_Host"
-  }
+  tags = { Name = "Bastion_Host" }
 }
 
-# 👇 Separate rule to allow Bastion hosts to talk to each other on port 80
-resource "aws_security_group_rule" "bastion_self_http" {
+resource "aws_security_group_rule" "ssh_trusted" {
+  type              = "ingress"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  security_group_id = aws_security_group.bastion_host.id
+  cidr_blocks       = [var.trusted_ip]
+}
+
+resource "aws_security_group_rule" "bastion_self_ssh" {
   type                     = "ingress"
   from_port                = 22
   to_port                  = 22
@@ -50,11 +37,19 @@ resource "aws_security_group_rule" "bastion_self_http" {
   source_security_group_id = aws_security_group.bastion_host.id
 }
 
+resource "aws_security_group_rule" "allow_http_from_trusted" {
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  security_group_id = aws_security_group.bastion_host.id
+  cidr_blocks       = [var.trusted_ip]
+}
 
 # --------------------- Security Group Ansible-host (port 22 from bastion host) --------------------- #
 # To do SSH from Bastion Host (For Ansible Host, Jenkins Slave)
 
-/*resource "aws_security_group" "ssh_from_bastion_host" {
+resource "aws_security_group" "ssh_from_bastion_host" {
   name = "Ansible host - ssh_from_bastion_host"
   description = "Allow port 22 from bastion host"
   vpc_id = module.vpc.vpc_id
@@ -113,11 +108,11 @@ resource "aws_security_group" "http" {
   tags = {
     Name = "ALB_SG"
   }
-}*/
+}
 
 # --------------------- Security Group Web Server --------------------- #
 
-/*resource "aws_security_group" "web01" {
+resource "aws_security_group" "web01" {
   name = "Web_Server"
   description = "Allow HTTP and SSH inbound traffic and all outbound traffic"
   vpc_id = module.vpc.vpc_id
@@ -190,11 +185,11 @@ resource "aws_security_group" "All_Traffic_enabled" {
   tags = {
     Name = "All - Traffic_Enabled"
   }
-}*/
+}
 
 # Security Groups for Jenkins, Nexus, and SonarQube
 
-/*resource "aws_security_group" "jenkins_master" {
+resource "aws_security_group" "jenkins_master" {
   name        = "jenkins-master-sg"
   description = "SG for Jenkins Master"
   vpc_id      = module.vpc.vpc_id
@@ -359,4 +354,4 @@ resource "aws_security_group_rule" "egress_all_jenkins" {
   cidr_blocks       = ["0.0.0.0/0"]
   ipv6_cidr_blocks  = ["::/0"]
   security_group_id = aws_security_group.jenkins_master.id
-}*/
+}
