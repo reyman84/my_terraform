@@ -1,10 +1,10 @@
-output "bastion_host" {
+/*output "bastion_host" {
   description = "Public and Private IPs of Controller"
   value = {
     public  = aws_instance.bastion_host.public_ip
     private = aws_instance.bastion_host.private_ip
   }
-}
+}*/
 
 output "controller_ips" {
   description = "Public and Private IPs of Controller"
@@ -30,7 +30,7 @@ output "ansible_host_amazonlinux_ips" {
   }
 }
 
-output "Jenkins_Master" {
+/*output "Jenkins_Master" {
   description = "Public and Private IPs of Jenkins_Master"
   value = {
     public  = aws_instance.jenkins_master.public_ip
@@ -68,4 +68,4 @@ output "Docker" {
     public  = aws_instance.docker.public_ip
     private = aws_instance.docker.private_ip
   }
-}
+}*/

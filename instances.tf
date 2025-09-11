@@ -15,44 +15,48 @@
   }
 }*/
 
-# --------------------- Docker & GIT on Amazon-Linux-2 ---------------------
+# --------------------- Docker on Ubuntu ---------------------
 
 /*resource "aws_instance" "docker" {
-  instance_type = "t2.micro"               # t2-micro is "Chargeable"
-  ami           = data.aws_ami.linux.id
-  key_name      = aws_key_pair.devops_project.key_name
-  subnet_id     = module.vpc.public_subnets[1]
-  vpc_security_group_ids = [ aws_security_group.bastion_host.id ]
+  instance_type          = "t2.micro"
+  ami                    = data.aws_ami.ubuntu.id
+  key_name               = aws_key_pair.devops_project.key_name
+  subnet_id              = module.vpc.public_subnets[1]
+  vpc_security_group_ids = [aws_security_group.bastion_host.id]
 
   tags = {
-    Name = "Docker"
+    Name = "Docker Engine"
   }
-
-  #provisioner "file" {
-  #  source      = "scripts/docker.sh"
-  #  destination = "/home/ec2-user/docker.sh"
-  #}
 
   connection {
     type        = "ssh"
-    user        = "ec2-user"
+    user        = "ubuntu"
     private_key = file("key-files/devops_project")
     host        = self.public_ip
   }
 
   provisioner "remote-exec" {
     inline = [
-      # Install Docker & Git
-      "sudo yum update -y",
-      "sudo yum install -y docker git",
-      "sudo systemctl start docker",
+      # Remove older versions
+      "for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove -y $pkg || true; done",
+
+      # Add Docker's official GPG key
+      "sudo apt-get update -y",
+      "sudo apt-get install -y ca-certificates curl gnupg lsb-release",
+      "sudo install -m 0755 -d /etc/apt/keyrings",
+      "sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc",
+      "sudo chmod a+r /etc/apt/keyrings/docker.asc",
+
+      # Add the repository to Apt sources
+      "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $${UBUNTU_CODENAME:-$VERSION_CODENAME}) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
+
+      # Install Docker
+      "sudo apt-get update -y",
+      "sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin",
       "sudo systemctl enable docker",
-      # Install Docker Compose
-      #"sudo curl -SL https://github.com/docker/compose/releases/download/v2.35.0/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose",
-      #"sudo chmod +x /usr/local/bin/docker-compose",
-      #"sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose",
-      # Add ec2-user to the docker group so you can execute Docker commands without using sudo
-      "sudo usermod -aG docker ec2-user"
+
+      # Add ubuntu user to docker group
+      "sudo usermod -aG docker ubuntu"
     ]
   }
 }*/
@@ -260,7 +264,7 @@ resource "null_resource" "volume_provisioner_slave" {
 
 # --------------------- Ansible Control Machine on Ubuntu ---------------------
 
-/*resource "aws_instance" "ansible_controller_ubuntu" {
+resource "aws_instance" "ansible_controller_ubuntu" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.ansible.id
@@ -345,7 +349,7 @@ resource "null_resource" "volume_provisioner_slave" {
 }
 
 # --------------------- Ansible Remote host - Ubuntu ---------------------
-/*resource "aws_instance" "ansible_host_ubuntu" {
+resource "aws_instance" "ansible_host_ubuntu" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.devops_project.key_name
@@ -393,10 +397,10 @@ resource "null_resource" "volume_provisioner_slave" {
       "sudo hostnamectl set-hostname ansible-ubuntu"
     ]
   }
-}*/
+}
 
 # --------------------- Ansible Remote host - Amazon Linux ---------------------
-/*resource "aws_instance" "ansible_host_amazonlinux" {
+resource "aws_instance" "ansible_host_amazonlinux" {
   ami                    = data.aws_ami.linux.id
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.devops_project.key_name
@@ -444,4 +448,4 @@ resource "null_resource" "volume_provisioner_slave" {
       "sudo hostnamectl set-hostname ansible-linux"
     ]
   }
-}*/
+}
