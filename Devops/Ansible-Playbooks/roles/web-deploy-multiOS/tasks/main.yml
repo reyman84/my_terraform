@@ -1,6 +1,6 @@
-- name: Install "{{AL2}}" on Amazon_linux
+- name: Install "{{PKG1}}" on Amazon_linux
   ansible.builtin.yum:
-    name: "{{AL2}}"
+    name: "{{PKG1}}"
     state: present
   when: ansible_distribution == 'Amazon'
 
@@ -11,19 +11,19 @@
     update_cache: yes
   when: ansible_distribution == 'Ubuntu'
   loop:
-    - "{{UBU1}}"
-    - "{{UBU2}}"
+    - "{{PKG2}}"
+    - "{{PKG3}}"
 
-- name: Start "{{AL2}}" on service Amazon_linux
+- name: Start "{{PKG1}}" on service Amazon_linux
   ansible.builtin.service:
-    name: "{{AL2}}"
+    name: "{{PKG1}}"
     state: started
     enabled: yes
   when: ansible_distribution == 'Amazon'
 
-- name: Start "{{UBU1}}" service on Ubuntu
+- name: Start "{{PKG2}}" service on Ubuntu
   ansible.builtin.service:
-    name: "{{UBU1}}"
+    name: "{{PKG2}}"
     state: started
     enabled: yes
   when: ansible_distribution == 'Ubuntu'
@@ -46,9 +46,7 @@
     src: "/tmp/{{ WEB_DIR }}/."
     dest: /var/www/html/.
     remote_src: yes
-  notify: 
-    - reStart "{{AL2}}" on service Amazon_linux
-    - reStart "{{UBU1}}" service on Ubuntu
+  notify: reStart webservice on MultiOS
 
 - name: Cleanup - remove the folder
   ansible.builtin.file:
