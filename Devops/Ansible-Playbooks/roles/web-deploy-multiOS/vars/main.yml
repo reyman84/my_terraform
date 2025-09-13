@@ -1,6 +1,6 @@
-AL2: httpd
-UBU1: apache2
-UBU2: unzip
+PKG1: httpd
+PKG2: apache2
+PKG3: unzip
 WEB_DIR: 2140_stellaris_research
 WEB_URL: "https://www.tooplate.com/zip-templates/{{WEB_DIR}}.zip"
 ZIP_FILE: "{{WEB_DIR}}.zip"

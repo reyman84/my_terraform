@@ -1,13 +1,6 @@
-- name: reStart "{{AL2}}" on service Amazon_linux
+- name: reStart webservice on MultiOS
   ansible.builtin.service:
-    name: "{{AL2}}"
+    name: "{{PKG1 if ansible_distribution == 'Amazon' else PKG2}}"
     state: restarted
     enabled: yes
   when: ansible_distribution == 'Amazon'
-
-- name: reStart "{{UBU1}}" service on Ubuntu
-  ansible.builtin.service:
-    name: "{{UBU1}}"
-    state: restarted
-    enabled: yes
-  when: ansible_distribution == 'Ubuntu'
