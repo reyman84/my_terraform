@@ -21,7 +21,7 @@ data "aws_ami" "linux" {
 
   filter {
     name   = "name"
-    values = ["al2023-ami-2023.7.*-kernel-6.1-x86_64"]
+    values = ["al2023-ami-*-kernel-6.1-x86_64"]
   }
 
   filter {
