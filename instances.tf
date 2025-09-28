@@ -275,6 +275,14 @@ resource "aws_instance" "ansible_controller_ubuntu" {
     Name = "Controller"
   }
 
+  user_data = <<-EOF
+              #!/bin/bash
+              apt-get update -y
+              apt-get install -y software-properties-common
+              apt-add-repository --yes --update ppa:ansible/ansible
+              apt-get install -y ansible
+          EOF
+
   connection {
     type        = "ssh"
     user        = "ubuntu"
@@ -283,35 +291,12 @@ resource "aws_instance" "ansible_controller_ubuntu" {
   }
 
   provisioner "file" {
-    source      = "Devops/Ansible-Playbooks/inventory"
-    destination = "/tmp/inventory"
-  }
-
-  provisioner "file" {
-    source      = "Devops/Ansible-Playbooks/ansible.cfg"
-    destination = "/tmp/ansible.cfg"
-  }
-
-  provisioner "file" {
-    source      = "key-files/id_ed25519"
-    destination = "/tmp/id_ed25519"
-  }
-
-  provisioner "file" {
-    source      = "key-files/id_ed25519.pub"
-    destination = "/tmp/id_ed25519.pub"
+    source      = "ansible_files"
+    destination = "/tmp/ansible_files"
   }
 
   provisioner "remote-exec" {
-    inline = [
-      # Install Ansible
-      "sudo apt-get update -y > /dev/null",
-      "sudo apt-get install -y software-properties-common > /dev/null",
-      "sudo add-apt-repository --yes --update ppa:ansible/ansible > /dev/null",
-      "sudo apt-get install -y ansible > /dev/null",
-      "ansible --version",
-      "sleep 5",
-      
+    inline = [      
       # Create devops user and setup Ansible repo
       # 1. Ensure devops user exists
       "sudo useradd -m -s /bin/bash devops || true",
@@ -324,7 +309,7 @@ resource "aws_instance" "ansible_controller_ubuntu" {
       "sudo chown devops:devops /home/devops/.ssh",
 
       # 3. Copy public key into authorized_keys
-      "sudo cp -pr /tmp/id_ed25519* /home/devops/.ssh/",
+      "sudo cp -pr /tmp/ansible_files/id_ed25519* /home/devops/.ssh/",
       "sudo chmod 600 /home/devops/.ssh/id_ed25519",
       "sudo chmod 644 /home/devops/.ssh/id_ed25519.pub",
       "sudo chown -R devops:devops /home/devops/.ssh",
@@ -338,8 +323,8 @@ resource "aws_instance" "ansible_controller_ubuntu" {
 
       # 6. Setup Ansible repo / inventory / logfile
       "sudo mkdir -p /home/devops/ansible-repo",
-      "sudo mv /tmp/inventory /home/devops/ansible-repo/inventory",
-      "sudo mv /tmp/ansible.cfg /home/devops/ansible-repo/ansible.cfg",
+      "sudo mv /tmp/ansible_files/inventory /home/devops/ansible-repo/inventory",
+      "sudo mv /tmp/ansible_files/ansible.cfg /home/devops/ansible-repo/ansible.cfg",
       "sudo chown -R devops:devops /home/devops/ansible-repo",
       "sudo chmod 644 /home/devops/ansible-repo/ansible.cfg",
       "sudo touch /var/log/ansible.log",
@@ -349,7 +334,8 @@ resource "aws_instance" "ansible_controller_ubuntu" {
 }
 
 # --------------------- Ansible Remote host - Ubuntu ---------------------
-resource "aws_instance" "ansible_host_ubuntu" {
+
+resource "aws_instance" "ansible_node_ubuntu" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.devops_project.key_name
@@ -368,8 +354,8 @@ resource "aws_instance" "ansible_host_ubuntu" {
   }
 
   provisioner "file" {
-    source      = "key-files/id_ed25519.pub"
-    destination = "/tmp/id_ed25519.pub"
+    source      = "ansible_files"
+    destination = "/tmp/ansible_files"
   }
 
   provisioner "remote-exec" {
@@ -385,7 +371,7 @@ resource "aws_instance" "ansible_host_ubuntu" {
       "sudo chown devops:devops /home/devops/.ssh",
 
       # 3. Copy public key into authorized_keys
-      "sudo cp /tmp/id_ed25519.pub /home/devops/.ssh/authorized_keys",
+      "sudo cp /tmp/ansible_files/id_ed25519.pub /home/devops/.ssh/authorized_keys",
       "sudo chmod 600 /home/devops/.ssh/authorized_keys",
       "sudo chown devops:devops /home/devops/.ssh/authorized_keys",
 
@@ -400,7 +386,8 @@ resource "aws_instance" "ansible_host_ubuntu" {
 }
 
 # --------------------- Ansible Remote host - Amazon Linux ---------------------
-resource "aws_instance" "ansible_host_amazonlinux" {
+
+resource "aws_instance" "ansible_host_linux" {
   ami                    = data.aws_ami.linux.id
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.devops_project.key_name
@@ -419,8 +406,8 @@ resource "aws_instance" "ansible_host_amazonlinux" {
   }
 
   provisioner "file" {
-    source      = "key-files/id_ed25519.pub"
-    destination = "/tmp/id_ed25519.pub"
+    source      = "ansible_files"
+    destination = "/tmp/ansible_files"
   }
 
   provisioner "remote-exec" {
@@ -436,7 +423,7 @@ resource "aws_instance" "ansible_host_amazonlinux" {
       "sudo chown devops:devops /home/devops/.ssh",
 
       # 3. Copy public key into authorized_keys
-      "sudo cp /tmp/id_ed25519.pub /home/devops/.ssh/authorized_keys",
+      "sudo cp /tmp/ansible_files/id_ed25519.pub /home/devops/.ssh/authorized_keys",
       "sudo chmod 600 /home/devops/.ssh/authorized_keys",
       "sudo chown devops:devops /home/devops/.ssh/authorized_keys",
 

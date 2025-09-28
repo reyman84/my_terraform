@@ -14,19 +14,19 @@ output "controller_ips" {
   }
 }
 
-output "ansible_host_ubuntu_ips" {
+output "ansible_node_ubuntu_ips" {
   description = "Public and Private IPs of ansible host ubuntu"
   value = {
-    public  = aws_instance.ansible_host_ubuntu.public_ip
-    private = aws_instance.ansible_host_ubuntu.private_ip
+    public  = aws_instance.ansible_node_ubuntu.public_ip
+    private = aws_instance.ansible_node_ubuntu.private_ip
   }
 }
 
-output "ansible_host_amazonlinux_ips" {
-  description = "Public and Private IPs of ansible host amazonlinux"
+output "ansible_host_linux_ips" {
+  description = "Public and Private IPs of ansible host linux"
   value = {
-    public  = aws_instance.ansible_host_amazonlinux.public_ip
-    private = aws_instance.ansible_host_amazonlinux.private_ip
+    public  = aws_instance.ansible_host_linux.public_ip
+    private = aws_instance.ansible_host_linux.private_ip
   }
 }
 
