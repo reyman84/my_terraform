@@ -283,7 +283,20 @@ resource "aws_instance" "ansible_controller_ubuntu" {
               apt-get install -y ansible
           EOF
 
-  connection {
+# --------------------------------------------------------------------------
+# Provisioners for Ansible Control Machine and Remote Hosts
+# --------------------------------------------------------------------------
+# These provisioners can automate the installation and setup of Ansible on 
+# the control machine.
+#
+# For personal practice, we are leaving them commented out so that we can
+# manually install Ansible, configure SSH keys, and understand each step
+# of the setup process.
+#
+# Later, you can uncomment them if you want to try automated provisioning.
+# --------------------------------------------------------------------------
+
+/*  connection {
     type        = "ssh"
     user        = "ubuntu"
     private_key = file("key-files/ansible")
@@ -330,7 +343,7 @@ resource "aws_instance" "ansible_controller_ubuntu" {
       "sudo touch /var/log/ansible.log",
       "sudo chown devops:devops /var/log/ansible.log"
     ]
-  }
+  }*/
 }
 
 # --------------------- Ansible Remote host - Ubuntu ---------------------
@@ -346,7 +359,7 @@ resource "aws_instance" "ansible_node_ubuntu" {
     Name = "ansible_node_ubuntu"
   }
 
-  connection {
+  /*connection {
     type        = "ssh"
     user        = "ubuntu"
     private_key = file("key-files/devops_project")
@@ -382,7 +395,7 @@ resource "aws_instance" "ansible_node_ubuntu" {
       # 5. (optional) set hostname
       "sudo hostnamectl set-hostname ansible-ubuntu"
     ]
-  }
+  }*/
 }
 
 # --------------------- Ansible Remote host - Amazon Linux ---------------------
@@ -398,7 +411,7 @@ resource "aws_instance" "ansible_host_linux" {
     Name = "ansible_node_Linux"
   }
 
-  connection {
+  /*connection {
     type        = "ssh"
     user        = "ec2-user"
     private_key = file("key-files/devops_project")
@@ -432,7 +445,10 @@ resource "aws_instance" "ansible_host_linux" {
       "sudo systemctl restart sshd",
 
       # 5. (optional) set hostname
-      "sudo hostnamectl set-hostname ansible-linux"
+      "sudo hostnamectl set-hostname ansible-linux",
+
+      # Install "vim" editor
+      "sudo yum install -y vim"
     ]
-  }
+  }*/
 }

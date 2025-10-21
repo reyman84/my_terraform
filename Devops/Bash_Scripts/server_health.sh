@@ -12,7 +12,7 @@
 ###############################################################################
 
 # List of remote servers (IP or hostname)
-SERVERS=("web01" "web02")
+SERVERS=("linux" "ubuntu")
 
 # Remote user (should have SSH key access)
 USER="devops"
