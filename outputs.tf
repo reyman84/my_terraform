@@ -22,11 +22,11 @@ output "ansible_node_ubuntu_ips" {
   }
 }
 
-output "ansible_host_linux_ips" {
+output "ansible_node_linux_ips" {
   description = "Public and Private IPs of ansible host linux"
   value = {
-    public  = aws_instance.ansible_host_linux.public_ip
-    private = aws_instance.ansible_host_linux.private_ip
+    public  = aws_instance.ansible_node_linux.public_ip
+    private = aws_instance.ansible_node_linux.private_ip
   }
 }
 
