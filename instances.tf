@@ -400,7 +400,7 @@ resource "aws_instance" "ansible_node_ubuntu" {
 
 # --------------------- Ansible Remote host - Amazon Linux ---------------------
 
-resource "aws_instance" "ansible_host_linux" {
+resource "aws_instance" "ansible_node_linux" {
   ami                    = data.aws_ami.linux.id
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.devops_project.key_name
