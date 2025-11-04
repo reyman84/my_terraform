@@ -1,13 +1,20 @@
-#####################
-## Security Groups ##
-#####################
+##########################################
+#         GLOBAL SECURITY GROUPS         #
+##########################################
 
-# --------------------- Security Group for Port 22 --------------------- #
-# SSH from my IP (For Bastion host, Ansible Controll Machine, Jenkins Master)
+# Allow All Traffic (Inbound + Outbound)
+# OPTIONAL — disabled
+/*resource "aws_security_group" "allow_all" {
+  name        = "allow_all_traffic"
+  description = "Allow all inbound and outbound traffic"
+  vpc_id      = module.vpc.vpc_id
 
-resource "aws_security_group" "bastion_host" {
-  name   = "Bastion_Host"
-  vpc_id = module.vpc.vpc_id
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   egress {
     from_port   = 0
@@ -16,192 +23,63 @@ resource "aws_security_group" "bastion_host" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = { Name = "Bastion_Host" }
+  tags = {
+    Name = "allow_all_traffic"
+  }
+}*/
+
+##########################################
+#       SSH Security Group + Rules
+##########################################
+
+resource "aws_security_group" "ssh" {
+  name        = "ssh-sg"
+  description = "Allow SSH"
+  vpc_id      = module.vpc.vpc_id
+
+  tags = {
+    Name = "ssh_only_sg"
+  }
 }
 
-resource "aws_security_group_rule" "ssh_trusted" {
-  type              = "ingress"
+# Allow SSH from trusted IP
+resource "aws_vpc_security_group_ingress_rule" "ssh_from_world" {
+  security_group_id = aws_security_group.ssh.id
   from_port         = 22
   to_port           = 22
-  protocol          = "tcp"
-  security_group_id = aws_security_group.bastion_host.id
-  cidr_blocks       = [var.trusted_ip]
+  ip_protocol       = "tcp"
+  cidr_ipv4         = var.trusted_ip
 }
 
-resource "aws_security_group_rule" "bastion_self_ssh" {
-  type                     = "ingress"
-  from_port                = 22
-  to_port                  = 22
-  protocol                 = "tcp"
-  security_group_id        = aws_security_group.bastion_host.id
-  source_security_group_id = aws_security_group.bastion_host.id
-}
 
-resource "aws_security_group_rule" "allow_http_from_trusted" {
-  type              = "ingress"
-  from_port         = 80
-  to_port           = 80
-  protocol          = "tcp"
-  security_group_id = aws_security_group.bastion_host.id
-  cidr_blocks       = [var.trusted_ip]
-}
-
-# --------------------- Security Group Ansible-host (port 22 from bastion host) --------------------- #
-# To do SSH from Bastion Host (For Ansible Host, Jenkins Slave)
-
-/*resource "aws_security_group" "ssh_from_bastion_host" {
-  name        = "Ansible host - ssh_from_bastion_host"
-  description = "Allow port 22 from bastion host"
-  vpc_id      = module.vpc.vpc_id
-
-  egress {
-    description      = "Allow all outbound traffic"
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  tags = {
-    Name = "Ansible host - ssh_from_bastion_host"
-  }
-}
-
-resource "aws_vpc_security_group_ingress_rule" "allow_22_from_Baston_Host" {
-  description                  = "Allow SSH from Bastion Host"
+# Allow SSH within same SG
+resource "aws_vpc_security_group_ingress_rule" "ssh_self" {
+  security_group_id            = aws_security_group.ssh.id
+  referenced_security_group_id = aws_security_group.ssh.id
   from_port                    = 22
   to_port                      = 22
   ip_protocol                  = "tcp"
-  referenced_security_group_id = aws_security_group.bastion_host.id
-  security_group_id            = aws_security_group.ssh_from_bastion_host.id
-
-  tags = {
-    Name = "Allow SSH from Bastion Host"
-  }
-}*/
-
-# --------------------- ALB Security Group (Only Port 80 from anywhere) --------------------- #
-
-/*resource "aws_security_group" "http" {
-  name        = "ALB_SG"
-  description = "Allow HTTP from anywhere"
-  vpc_id      = module.vpc.vpc_id
-
-  ingress {
-    description = "Allow HTTP from anywhere"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    description      = "Allow all outbound traffic"
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  tags = {
-    Name = "ALB_SG"
-  }
-}*/
-
-# --------------------- Security Group Web Server --------------------- #
-
-/*resource "aws_security_group" "web01" {
-  name        = "Web_Server"
-  description = "Allow HTTP and SSH inbound traffic and all outbound traffic"
-  vpc_id      = module.vpc.vpc_id
-
-  egress {
-    description      = "Allow all outbound traffic"
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  tags = {
-    Name = "Web_Server"
-  }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_SSH_from_Baston_Host" {
-  description                  = "Allow SSH from Bastion Host"
-  from_port                    = 22
-  to_port                      = 22
-  ip_protocol                  = "tcp"
-  referenced_security_group_id = aws_security_group.bastion_host.id
-  security_group_id            = aws_security_group.web01.id
+##########################################
+#        DEVOPS STACK: SG Definitions
+##########################################
 
-  tags = {
-    Name = "Allow SSH from Bastion Host"
-  }
-}
-
-resource "aws_vpc_security_group_ingress_rule" "allow_HTTP_from_ALB_SG" {
-  description                  = "Allow HTTP from ALB-SG"
-  from_port                    = 80
-  to_port                      = 80
-  ip_protocol                  = "tcp"
-  security_group_id            = aws_security_group.web01.id
-  referenced_security_group_id = aws_security_group.http.id
-
-  tags = {
-    Name = "Allow HTTP from ALB"
-  }
-}*/
-
-# --------------------- Allow All Traffic from anywhere --------------------- #
-
-/*resource "aws_security_group" "All_Traffic_enabled" {
-  name        = "All_Traffic_Enabled"
-  description = "Allow all traffic from anywhere"
-  vpc_id      = module.vpc.vpc_id
-
-  ingress {
-    description      = "Allow all inbound traffic"
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  egress {
-    description      = "Allow all outbound traffic"
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  tags = {
-    Name = "All - Traffic_Enabled"
-  }
-}*/
-
-# Security Groups for Jenkins, Nexus, and SonarQube
-
-/*resource "aws_security_group" "jenkins_master" {
+# Jenkins SG
+resource "aws_security_group" "jenkins_master" {
   name        = "jenkins-master-sg"
-  description = "SG for Jenkins Master"
+  description = "Jenkins Master SG"
   vpc_id      = module.vpc.vpc_id
 
   tags = {
     Name = "jenkins-master-sg"
   }
-}*/
+}
 
-/*resource "aws_security_group" "nexus_sg" {
+# Nexus SG
+/*resource "aws_security_group" "nexus" {
   name        = "nexus-sg"
-  description = "SG for Nexus"
+  description = "Nexus Repository Manager SG"
   vpc_id      = module.vpc.vpc_id
 
   tags = {
@@ -209,9 +87,10 @@ resource "aws_vpc_security_group_ingress_rule" "allow_HTTP_from_ALB_SG" {
   }
 }*/
 
-/*resource "aws_security_group" "sonarqube_sg" {
+# Sonar SG
+/*resource "aws_security_group" "sonarqube" {
   name        = "sonarqube-sg"
-  description = "SG for SonarQube"
+  description = "SonarQube SG"
   vpc_id      = module.vpc.vpc_id
 
   tags = {
@@ -219,139 +98,114 @@ resource "aws_vpc_security_group_ingress_rule" "allow_HTTP_from_ALB_SG" {
   }
 }*/
 
-# Rules
-# Port 22 for SSH access to Jenkins, Nexus, and SonarQube from a trusted IP
+##########################################
+#         Application Ports Access
+##########################################
 
-/*resource "aws_security_group_rule" "allow_ssh_to_jenkins" {
-  type              = "ingress"
-  from_port         = 22
-  to_port           = 22
-  protocol          = "tcp"
-  cidr_blocks       = [var.trusted_ip]
-  security_group_id = aws_security_group.jenkins_master.id
-  description       = "Allow SSH from Trusted IP"
-}*/
-
-/*resource "aws_security_group_rule" "allow_ssh_to_nexus" {
-  type              = "ingress"
-  from_port         = 22
-  to_port           = 22
-  protocol          = "tcp"
-  cidr_blocks       = [var.trusted_ip]
-  security_group_id = aws_security_group.nexus_sg.id
-  description       = "Allow SSH from Trusted IP"
-}*/
-
-/*resource "aws_security_group_rule" "allow_ssh_to_sonarqube" {
-  type              = "ingress"
-  from_port         = 22
-  to_port           = 22
-  protocol          = "tcp"
-  cidr_blocks       = [var.trusted_ip]
-  security_group_id = aws_security_group.sonarqube_sg.id
-  description       = "Allow SSH from Trusted IP"
-}*/
-
-# Allow Jenkins, Nexus and SonarQube over Browser
-/*resource "aws_security_group_rule" "allow_trusted_to_jenkins" {
+# Jenkins (8080)
+resource "aws_security_group_rule" "jenkins_http_trusted" {
   type              = "ingress"
   from_port         = 8080
   to_port           = 8080
   protocol          = "tcp"
   cidr_blocks       = [var.trusted_ip]
   security_group_id = aws_security_group.jenkins_master.id
-  description       = "Allow 8080 from Trusted IP"
-}*/
+}
 
-/*resource "aws_security_group_rule" "allow_trusted_to_nexus" {
+# Nexus (8081)
+/*resource "aws_security_group_rule" "nexus_http_trusted" {
   type              = "ingress"
   from_port         = 8081
   to_port           = 8081
   protocol          = "tcp"
   cidr_blocks       = [var.trusted_ip]
-  security_group_id = aws_security_group.nexus_sg.id
-  description       = "Allow 8081 from Trusted IP"
+  security_group_id = aws_security_group.nexus.id
 }*/
 
-/*resource "aws_security_group_rule" "allow_trusted_to_sonar" {
+# SonarQube (80)
+/*resource "aws_security_group_rule" "sonar_http_trusted" {
   type              = "ingress"
   from_port         = 80
   to_port           = 80
   protocol          = "tcp"
   cidr_blocks       = [var.trusted_ip]
-  security_group_id = aws_security_group.sonarqube_sg.id
-  description       = "Allow 80 from Trusted IP"
+  security_group_id = aws_security_group.sonarqube.id
 }*/
 
-/*resource "aws_security_group_rule" "allow_sonar_to_jenkins" {
-  type                     = "ingress"
-  from_port                = 8080
-  to_port                  = 8080
-  protocol                 = "tcp"
-  source_security_group_id = aws_security_group.sonarqube_sg.id
-  security_group_id        = aws_security_group.jenkins_master.id
-  description              = "Allow 8080 from Sonar"
-}*/
+##########################################
+#  Cross-Service Internal Dependencies
+##########################################
 
-/*resource "aws_security_group_rule" "allow_jenkins_to_nexus" {
+# Jenkins → Nexus (upload artifacts)
+/*resource "aws_security_group_rule" "jenkins_to_nexus" {
   type                     = "ingress"
   from_port                = 8081
   to_port                  = 8081
   protocol                 = "tcp"
+  security_group_id        = aws_security_group.nexus.id
   source_security_group_id = aws_security_group.jenkins_master.id
-  security_group_id        = aws_security_group.nexus_sg.id
-  description              = "Allow 8081 from Jenkins Master"
 }*/
 
-/*resource "aws_security_group_rule" "allow_jenkins_to_sonar" {
+# Jenkins → Sonar (trigger analysis)
+/*resource "aws_security_group_rule" "jenkins_to_sonar" {
   type                     = "ingress"
   from_port                = 80
   to_port                  = 80
   protocol                 = "tcp"
+  security_group_id        = aws_security_group.sonarqube.id
   source_security_group_id = aws_security_group.jenkins_master.id
-  security_group_id        = aws_security_group.sonarqube_sg.id
-  description              = "Allow 80 from Jenkins Master"
 }*/
 
-# Open port 8080 for Jenkins from anywhere (for github webhooks)
-/*resource "aws_security_group_rule" "allow_github_with_jenkins" {
+# Sonar → Jenkins (webhooks)
+/*resource "aws_security_group_rule" "sonar_to_jenkins" {
+  type                     = "ingress"
+  from_port                = 8080
+  to_port                  = 8080
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.jenkins_master.id
+  source_security_group_id = aws_security_group.sonarqube.id
+}*/
+
+##########################################
+#           GitHub Webhooks
+##########################################
+
+/*resource "aws_security_group_rule" "jenkins_webhook" {
   type              = "ingress"
   from_port         = 8080
   to_port           = 8080
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.jenkins_master.id
-  description       = "Allow 8080 from anywhere for GitHub webhooks"
 }*/
 
-# Egress rules for Jenkins, Nexus, and SonarQube
+##########################################
+#           Egress Rules
+##########################################
 
-/*resource "aws_security_group_rule" "egress_all_sonar" {
+/*resource "aws_security_group_rule" "egress_sonar" {
   type              = "egress"
   from_port         = 0
   to_port           = 0
   protocol          = "-1"
   cidr_blocks       = ["0.0.0.0/0"]
-  ipv6_cidr_blocks  = ["::/0"]
-  security_group_id = aws_security_group.sonarqube_sg.id
+  security_group_id = aws_security_group.sonarqube.id
 }*/
 
-/*resource "aws_security_group_rule" "egress_all_nexus" {
+/*resource "aws_security_group_rule" "egress_nexus" {
   type              = "egress"
   from_port         = 0
   to_port           = 0
   protocol          = "-1"
   cidr_blocks       = ["0.0.0.0/0"]
-  ipv6_cidr_blocks  = ["::/0"]
-  security_group_id = aws_security_group.nexus_sg.id
+  security_group_id = aws_security_group.nexus.id
 }*/
 
-/*resource "aws_security_group_rule" "egress_all_jenkins" {
+resource "aws_security_group_rule" "egress_jenkins" {
   type              = "egress"
   from_port         = 0
   to_port           = 0
   protocol          = "-1"
   cidr_blocks       = ["0.0.0.0/0"]
-  ipv6_cidr_blocks  = ["::/0"]
   security_group_id = aws_security_group.jenkins_master.id
-}*/
+}
