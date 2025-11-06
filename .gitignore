@@ -9,3 +9,4 @@ key-files/devops_project
 key-files/devops_project.pub
 key-files/id_ed25519
 key-files/id_ed25519.pub
+vm_status.tf
