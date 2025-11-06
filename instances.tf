@@ -113,7 +113,6 @@ resource "aws_instance" "jenkins_master" {
   vpc_security_group_ids = [aws_security_group.ssh.id, aws_security_group.jenkins_master.id]
   iam_instance_profile   = aws_iam_instance_profile.jenkins_instance_profile.name
 
-
   tags = {
     Name = "Jenkins-Master"
   }
@@ -158,12 +157,13 @@ resource "aws_instance" "jenkins_master" {
             EOF
 }
 
-/*resource "aws_instance" "nexus" {
+resource "aws_instance" "nexus" {
   ami                    = data.aws_ami.linux.id
   instance_type          = "t2.medium"
   key_name               = aws_key_pair.devops_project.key_name
   subnet_id              = module.vpc.public_subnets[1]
   vpc_security_group_ids = [aws_security_group.ssh.id, aws_security_group.nexus.id]
+  #iam_instance_profile   = aws_iam_instance_profile.jenkins_instance_profile.name
 
   root_block_device {
     volume_size = 12
@@ -193,9 +193,9 @@ resource "aws_instance" "jenkins_master" {
       "sudo bash /home/ec2-user/nexus-setup.sh"
     ]
   }
-}*/
+}
 
-/*resource "aws_instance" "sonarqube" {
+resource "aws_instance" "sonarqube" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t2.medium"
   key_name               = aws_key_pair.devops_project.key_name
@@ -231,7 +231,7 @@ resource "aws_instance" "jenkins_master" {
       "sudo bash /home/ubuntu/sonar-setup.sh"
     ]
   }
-}*/
+}
 
 /*resource "aws_instance" "ansible_controller" {
   ami                    = data.aws_ami.ubuntu.id

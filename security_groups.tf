@@ -77,7 +77,7 @@ resource "aws_security_group" "jenkins_master" {
 }
 
 # Nexus SG
-/*resource "aws_security_group" "nexus" {
+resource "aws_security_group" "nexus" {
   name        = "nexus-sg"
   description = "Nexus Repository Manager SG"
   vpc_id      = module.vpc.vpc_id
@@ -85,10 +85,10 @@ resource "aws_security_group" "jenkins_master" {
   tags = {
     Name = "nexus-sg"
   }
-}*/
+}
 
 # Sonar SG
-/*resource "aws_security_group" "sonarqube" {
+resource "aws_security_group" "sonarqube" {
   name        = "sonarqube-sg"
   description = "SonarQube SG"
   vpc_id      = module.vpc.vpc_id
@@ -96,7 +96,7 @@ resource "aws_security_group" "jenkins_master" {
   tags = {
     Name = "sonarqube-sg"
   }
-}*/
+}
 
 ##########################################
 #         Application Ports Access
@@ -113,58 +113,58 @@ resource "aws_security_group_rule" "jenkins_http_trusted" {
 }
 
 # Nexus (8081)
-/*resource "aws_security_group_rule" "nexus_http_trusted" {
+resource "aws_security_group_rule" "nexus_http_trusted" {
   type              = "ingress"
   from_port         = 8081
   to_port           = 8081
   protocol          = "tcp"
   cidr_blocks       = [var.trusted_ip]
   security_group_id = aws_security_group.nexus.id
-}*/
+}
 
 # SonarQube (80)
-/*resource "aws_security_group_rule" "sonar_http_trusted" {
+resource "aws_security_group_rule" "sonar_http_trusted" {
   type              = "ingress"
   from_port         = 80
   to_port           = 80
   protocol          = "tcp"
   cidr_blocks       = [var.trusted_ip]
   security_group_id = aws_security_group.sonarqube.id
-}*/
+}
 
 ##########################################
 #  Cross-Service Internal Dependencies
 ##########################################
 
 # Jenkins → Nexus (upload artifacts)
-/*resource "aws_security_group_rule" "jenkins_to_nexus" {
+resource "aws_security_group_rule" "jenkins_to_nexus" {
   type                     = "ingress"
   from_port                = 8081
   to_port                  = 8081
   protocol                 = "tcp"
   security_group_id        = aws_security_group.nexus.id
   source_security_group_id = aws_security_group.jenkins_master.id
-}*/
+}
 
 # Jenkins → Sonar (trigger analysis)
-/*resource "aws_security_group_rule" "jenkins_to_sonar" {
+resource "aws_security_group_rule" "jenkins_to_sonar" {
   type                     = "ingress"
   from_port                = 80
   to_port                  = 80
   protocol                 = "tcp"
   security_group_id        = aws_security_group.sonarqube.id
   source_security_group_id = aws_security_group.jenkins_master.id
-}*/
+}
 
 # Sonar → Jenkins (webhooks)
-/*resource "aws_security_group_rule" "sonar_to_jenkins" {
+resource "aws_security_group_rule" "sonar_to_jenkins" {
   type                     = "ingress"
   from_port                = 8080
   to_port                  = 8080
   protocol                 = "tcp"
   security_group_id        = aws_security_group.jenkins_master.id
   source_security_group_id = aws_security_group.sonarqube.id
-}*/
+}
 
 ##########################################
 #           GitHub Webhooks
@@ -183,23 +183,23 @@ resource "aws_security_group_rule" "jenkins_http_trusted" {
 #           Egress Rules
 ##########################################
 
-/*resource "aws_security_group_rule" "egress_sonar" {
+resource "aws_security_group_rule" "egress_sonar" {
   type              = "egress"
   from_port         = 0
   to_port           = 0
   protocol          = "-1"
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.sonarqube.id
-}*/
+}
 
-/*resource "aws_security_group_rule" "egress_nexus" {
+resource "aws_security_group_rule" "egress_nexus" {
   type              = "egress"
   from_port         = 0
   to_port           = 0
   protocol          = "-1"
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.nexus.id
-}*/
+}
 
 resource "aws_security_group_rule" "egress_jenkins" {
   type              = "egress"

@@ -46,21 +46,21 @@
   }
 }*/
 
-/*output "Nexus" {
+output "Nexus" {
   description = "Public and Private IPs of Nexus"
   value = {
     public  = aws_instance.nexus.public_ip
     private = aws_instance.nexus.private_ip
   }
-}*/
+}
 
-/*output "SonarQube" {
+output "SonarQube" {
   description = "Public and Private IPs of SonarQube"
   value = {
     public  = aws_instance.sonarqube.public_ip
     private = aws_instance.sonarqube.private_ip
   }
-}*/
+}
 
 output "Jenkins_Master" {
   description = "Public and Private IPs of Jenkins_Master"
