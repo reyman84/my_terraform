@@ -85,3 +85,13 @@ output "Jenkins_Master" {
     private = aws_instance.sonarqube.private_ip
   }
 }*/
+
+output "deployment_Private_ips" {
+  value = aws_instance.jenkins_ansible_deployment[*].private_ip
+  description = "List of private IP addresses of bastion hosts"
+}
+
+output "deployment_Public_ips" {
+  value = aws_instance.jenkins_ansible_deployment[*].public_ip
+  description = "List of public IP addresses of bastion hosts"
+}

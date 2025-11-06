@@ -1,15 +1,3 @@
-/*resource "aws_instance" "bastion_host" {
-  instance_type          = "t2.micro"
-  ami                    = data.aws_ami.linux.id
-  key_name               = aws_key_pair.devops_project.key_name
-  subnet_id              = module.vpc.public_subnets[0]
-  vpc_security_group_ids = [aws_security_group.ssh.id]
-
-  tags = {
-    Name = "Bastion-Host"
-  }
-}*/
-
 /*resource "aws_instance" "docker" {
   instance_type          = "t2.micro"
   ami                    = data.aws_ami.ubuntu.id
@@ -230,6 +218,20 @@ resource "aws_instance" "sonarqube" {
       "dos2unix /home/ubuntu/sonar-setup.sh",
       "sudo bash /home/ubuntu/sonar-setup.sh"
     ]
+  }
+}
+
+# Create two Jenkins Ansible deployment nodes for stage and prod environments
+resource "aws_instance" "jenkins_ansible_deployment" {
+  count = 2
+  instance_type          = "t2.micro"
+  ami                    = data.aws_ami.ubuntu.id
+  key_name               = aws_key_pair.devops_project.key_name
+  subnet_id              = module.vpc.public_subnets[0]
+  vpc_security_group_ids = [aws_security_group.ssh.id]
+
+  tags = {
+    Name = "ansible_nodes-${count.index + 1}"
   }
 }
 
