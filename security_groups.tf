@@ -166,6 +166,16 @@ resource "aws_security_group_rule" "sonar_to_jenkins" {
   source_security_group_id = aws_security_group.sonarqube.id
 }
 
+# Ansible → nexus
+resource "aws_security_group_rule" "ansible_to_nexus" {
+  type                     = "ingress"
+  from_port                = 8081
+  to_port                  = 8081
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.nexus.id
+  source_security_group_id = aws_security_group.ssh.id
+}
+
 ##########################################
 #           GitHub Webhooks
 ##########################################
@@ -182,6 +192,15 @@ resource "aws_security_group_rule" "sonar_to_jenkins" {
 ##########################################
 #           Egress Rules
 ##########################################
+
+resource "aws_security_group_rule" "egress_ssh" {
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.ssh.id
+}
 
 resource "aws_security_group_rule" "egress_sonar" {
   type              = "egress"
