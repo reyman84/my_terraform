@@ -36,6 +36,50 @@
   }
 }*/
 
+/*resource "aws_instance" "ansible_controller" {
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = "t2.micro"
+  key_name               = aws_key_pair.devops_project.key_name
+  subnet_id              = module.vpc.public_subnets[0]
+  vpc_security_group_ids = [aws_security_group.ssh.id]
+
+  tags = {
+    Name = "Ansible-Controller"
+  }
+
+  user_data = <<-EOF
+              #!/bin/bash
+              apt update -y
+              apt install -y software-properties-common
+              apt-add-repository --yes --update ppa:ansible/ansible
+              apt install -y ansible
+            EOF
+}*/
+
+/*resource "aws_instance" "ansible_node_ubuntu" {
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = "t2.micro"
+  key_name               = aws_key_pair.devops_project.key_name
+  subnet_id              = module.vpc.public_subnets[1]
+  vpc_security_group_ids = [aws_security_group.ssh.id]
+
+  tags = {
+    Name = "ansible-node-ubuntu"
+  }
+}*/
+
+/*resource "aws_instance" "ansible_node_linux" {
+  ami                    = data.aws_ami.linux.id
+  instance_type          = "t2.micro"
+  key_name               = aws_key_pair.devops_project.key_name
+  subnet_id              = module.vpc.public_subnets[2]
+  vpc_security_group_ids = [aws_security_group.ssh.id]
+
+  tags = {
+    Name = "ansible-node-linux"
+  }
+}*/
+
 /*resource "aws_instance" "jenkins_slave" {
   ami                    = data.aws_ami.linux.id
   instance_type          = "t2.micro"
@@ -234,47 +278,3 @@ resource "aws_instance" "jenkins_ansible_deployment" {
     Name = "ansible_nodes-${count.index + 1}"
   }
 }
-
-/*resource "aws_instance" "ansible_controller" {
-  ami                    = data.aws_ami.ubuntu.id
-  instance_type          = "t2.micro"
-  key_name               = aws_key_pair.devops_project.key_name
-  subnet_id              = module.vpc.public_subnets[0]
-  vpc_security_group_ids = [aws_security_group.ssh.id]
-
-  tags = {
-    Name = "Ansible-Controller"
-  }
-
-  user_data = <<-EOF
-              #!/bin/bash
-              apt update -y
-              apt install -y software-properties-common
-              apt-add-repository --yes --update ppa:ansible/ansible
-              apt install -y ansible
-            EOF
-}*/
-
-/*resource "aws_instance" "ansible_node_ubuntu" {
-  ami                    = data.aws_ami.ubuntu.id
-  instance_type          = "t2.micro"
-  key_name               = aws_key_pair.devops_project.key_name
-  subnet_id              = module.vpc.public_subnets[1]
-  vpc_security_group_ids = [aws_security_group.ssh.id]
-
-  tags = {
-    Name = "ansible-node-ubuntu"
-  }
-}*/
-
-/*resource "aws_instance" "ansible_node_linux" {
-  ami                    = data.aws_ami.linux.id
-  instance_type          = "t2.micro"
-  key_name               = aws_key_pair.devops_project.key_name
-  subnet_id              = module.vpc.public_subnets[2]
-  vpc_security_group_ids = [aws_security_group.ssh.id]
-
-  tags = {
-    Name = "ansible-node-linux"
-  }
-}*/
