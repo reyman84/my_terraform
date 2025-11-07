@@ -11,3 +11,4 @@ key-files/id_ed25519
 key-files/id_ed25519.pub
 vm_status.tf
 CI CD use-case.docx
+-rw-r--r-- 1 Admin 197121 2692 Nov  7 13:34 outputs.tf
