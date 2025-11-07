@@ -45,8 +45,8 @@ fi
 if [[ "$OS" == "amzn" ]]; then
     echo "=== Setting up Jenkins Slave on Amazon Linux 2 ==="
 
-    yum update -y
-    yum install -y java-21-amazon-corretto-devel git curl wget
+    dnf update -y
+    dnf install -y java-21-amazon-corretto-devel git curl wget
 
     JAVA_HOME="/usr/lib/jvm/java-21-amazon-corretto"
     echo "export JAVA_HOME=$JAVA_HOME" >> /etc/profile

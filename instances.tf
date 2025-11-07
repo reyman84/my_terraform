@@ -116,9 +116,9 @@
 # Requires  : SSH connection between Jenkins Master and Slave nodes
 # -------------------------------------------------------------------------
 
-/*resource "aws_instance" "jenkins_slave" {
+resource "aws_instance" "jenkins_slave" {
   ami                    = data.aws_ami.linux.id
-  instance_type          = "t2.micro"
+  instance_type          = "t2.small"
   key_name               = aws_key_pair.devops_project.key_name
   subnet_id              = module.vpc.public_subnets[1]
   vpc_security_group_ids = [aws_security_group.ssh.id]
@@ -126,7 +126,7 @@
   tags = {
     Name = "Jenkins-Slave"
   }
-}
+/*}
 
 resource "aws_ebs_volume" "jenkins_slave_volume" {
   availability_zone = aws_instance.jenkins_slave.availability_zone
@@ -147,7 +147,7 @@ resource "aws_volume_attachment" "jenkins_slave_attachment" {
 
 resource "null_resource" "jenkins_slave_provision" {
   depends_on = [aws_volume_attachment.jenkins_slave_attachment]
-
+*/
   connection {
     type        = "ssh"
     user        = "ec2-user"
@@ -166,12 +166,12 @@ resource "null_resource" "jenkins_slave_provision" {
       "sudo mount /dev/xvdf /tmp",
       "echo \"/dev/xvdf /tmp ext4 defaults,nofail 0 2\" | sudo tee -a /etc/fstab",
 
-      "sudo yum install -y dos2unix",
+      "sudo dnf install -y dos2unix",
       "dos2unix /home/ec2-user/jenkins_slave.sh",
       "sudo bash /home/ec2-user/jenkins_slave.sh"
     ]
   }
-}*/
+}
 
 # -------------------------------------------------------------------------
 # Resource  : Jenkins Master Server
