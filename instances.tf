@@ -126,9 +126,33 @@ resource "aws_instance" "jenkins_slave" {
   tags = {
     Name = "Jenkins-Slave"
   }
-/*}
 
-resource "aws_ebs_volume" "jenkins_slave_volume" {
+  user_data = <<-EOF
+                #!/bin/bash
+                set -eux
+
+                # System Update
+                dnf update -y
+                dnf upgrade -y
+
+                # Required Packages
+                dnf install -y java-21-amazon-corretto-devel git wget unzip dos2unix
+
+                # Set JAVA_HOME
+                JAVA_HOME="/usr/lib/jvm/java-21-amazon-corretto"
+                echo "export JAVA_HOME=$JAVA_HOME" | sudo tee -a /etc/profile
+                echo "export PATH=\$JAVA_HOME/bin:\$PATH" | sudo tee -a /etc/profile
+                source /etc/profile
+
+                echo "JAVA_HOME is set to: $JAVA_HOME"
+                java --version
+
+                # Hostname
+                hostnamectl set-hostname jenkins-slave
+            EOF
+}
+
+/*resource "aws_ebs_volume" "jenkins_slave_volume" {
   availability_zone = aws_instance.jenkins_slave.availability_zone
   size              = 2
   type              = "gp2"
@@ -136,7 +160,6 @@ resource "aws_ebs_volume" "jenkins_slave_volume" {
   tags = {
     Name = "jenkins-slave-tmp"
   }
-}
 
 resource "aws_volume_attachment" "jenkins_slave_attachment" {
   device_name  = "/dev/sdf"
@@ -147,7 +170,7 @@ resource "aws_volume_attachment" "jenkins_slave_attachment" {
 
 resource "null_resource" "jenkins_slave_provision" {
   depends_on = [aws_volume_attachment.jenkins_slave_attachment]
-*/
+
   connection {
     type        = "ssh"
     user        = "ec2-user"
@@ -161,17 +184,13 @@ resource "null_resource" "jenkins_slave_provision" {
   }
 
   provisioner "remote-exec" {
-    inline = [
-      "sudo mkfs.ext4 /dev/xvdf",
-      "sudo mount /dev/xvdf /tmp",
-      "echo \"/dev/xvdf /tmp ext4 defaults,nofail 0 2\" | sudo tee -a /etc/fstab",
-
-      "sudo dnf install -y dos2unix",
-      "dos2unix /home/ec2-user/jenkins_slave.sh",
-      "sudo bash /home/ec2-user/jenkins_slave.sh"
+  inline = [
+    "sudo mkfs.ext4 /dev/xvdf",
+    "sudo mount /dev/xvdf /tmp",
+    "echo \"/dev/xvdf /tmp ext4 defaults,nofail 0 2\" | sudo tee -a /etc/fstab",
     ]
   }
-}
+}*/
 
 # -------------------------------------------------------------------------
 # Resource  : Jenkins Master Server
