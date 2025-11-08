@@ -117,49 +117,51 @@
 # -------------------------------------------------------------------------
 
 resource "aws_instance" "jenkins_slave" {
-  ami                    = data.aws_ami.linux.id
+  ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t2.small"
   key_name               = aws_key_pair.devops_project.key_name
   subnet_id              = module.vpc.public_subnets[1]
-  vpc_security_group_ids = [aws_security_group.ssh.id]
+  vpc_security_group_ids = [aws_security_group.ssh.id, aws_security_group.jenkins_master.id]
 
   tags = {
     Name = "Jenkins-Slave"
   }
 
+  root_block_device {
+    volume_size           = 12
+    volume_type           = "gp3"
+    delete_on_termination = true
+  }
+
   user_data = <<-EOF
                 #!/bin/bash
                 set -eux
-
-                # System Update
-                dnf update -y
-                dnf upgrade -y
-
-                # Required Packages
-                dnf install -y java-21-amazon-corretto-devel git wget unzip dos2unix
-
-                # Set JAVA_HOME
-                JAVA_HOME="/usr/lib/jvm/java-21-amazon-corretto"
-                echo "export JAVA_HOME=$JAVA_HOME" | sudo tee -a /etc/profile
-                echo "export PATH=\$JAVA_HOME/bin:\$PATH" | sudo tee -a /etc/profile
-                source /etc/profile
-
-                echo "JAVA_HOME is set to: $JAVA_HOME"
-                java --version
-
-                # Hostname
+                
+                # Update system
+                apt update -y
+                apt install -y fontconfig ca-certificates apt-transport-https curl unzip
+                
+                # Install AWS CLI v2
+                curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                unzip awscliv2.zip
+                sudo ./aws/install
+                
+                # Install Java 21
+                apt install -y openjdk-21-jdk
+                java -version
                 hostnamectl set-hostname jenkins-slave
             EOF
 }
 
-/*resource "aws_ebs_volume" "jenkins_slave_volume" {
+resource "aws_ebs_volume" "jenkins_slave_volume" {
   availability_zone = aws_instance.jenkins_slave.availability_zone
   size              = 2
-  type              = "gp2"
+  type              = "gp3"
 
   tags = {
     Name = "jenkins-slave-tmp"
   }
+}
 
 resource "aws_volume_attachment" "jenkins_slave_attachment" {
   device_name  = "/dev/sdf"
@@ -173,24 +175,22 @@ resource "null_resource" "jenkins_slave_provision" {
 
   connection {
     type        = "ssh"
-    user        = "ec2-user"
+    user        = "ubuntu"
     private_key = file("key-files/devops_project")
     host        = aws_instance.jenkins_slave.public_ip
   }
 
-  provisioner "file" {
-    source      = "scripts/jenkins_slave.sh"
-    destination = "/home/ec2-user/jenkins_slave.sh"
-  }
-
   provisioner "remote-exec" {
-  inline = [
-    "sudo mkfs.ext4 /dev/xvdf",
-    "sudo mount /dev/xvdf /tmp",
-    "echo \"/dev/xvdf /tmp ext4 defaults,nofail 0 2\" | sudo tee -a /etc/fstab",
+    inline = [
+      "sudo mkfs.ext4 /dev/xvdf",
+      "sudo mkdir -p /tmp",
+      "sudo mount /dev/xvdf /tmp",
+      "echo '/dev/xvdf /tmp ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab",
+      "sudo chown ubuntu:ubuntu /tmp",
+      "chmod 1777 /tmp"
     ]
   }
-}*/
+}
 
 # -------------------------------------------------------------------------
 # Resource  : Jenkins Master Server
@@ -243,13 +243,15 @@ resource "aws_instance" "jenkins_master" {
                 systemctl stop jenkins
                 
                 # Download backup (IAM role must be attached!)
-                aws s3 cp s3://jenkins-config-terraform/jenkins_configuration.tar.gz /root/jenkins_backup.tar.gz --region us-east-1
+                # aws s3 cp s3://jenkins-config-terraform/jenkins_configuration.tar.gz /root/jenkins_backup.tar.gz --region us-east-1
+                aws s3 cp s3://jenkins-config-terraform/jenkins_backup_v1.tar.gz /root/jenkins_backup.tar.gz --region us-east-1
                 
                 # Restore Jenkins config
                 tar -xzvf /root/jenkins_backup.tar.gz -C / --overwrite
                 chown -R jenkins:jenkins /var/lib/jenkins
                 
                 systemctl start jenkins
+                hostnamectl set-hostname jenkins-master
             EOF
 }
 
