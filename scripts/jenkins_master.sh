@@ -1,47 +1,52 @@
 #!/bin/bash
+set -eux
 
 # Update system
-sudo apt update -y
+apt update -y
+apt install -y fontconfig ca-certificates apt-transport-https curl unzip
 
-# Required dependencies
-sudo apt install -y fontconfig ca-certificates apt-transport-https curl
+# Install AWS CLI v2
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
 
-# Install OpenJDK 21 (JDK, not JRE — Jenkins needs tools.jar/javac)
-sudo apt install -y openjdk-21-jdk
-
-# Verify Java
+# Install Java 21
+apt install -y openjdk-21-jdk
 java -version
 
-# Create keyrings directory
-sudo mkdir -p /etc/apt/keyrings
+# Set JAVA_HOME globally
+echo 'export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64' | sudo tee -a /etc/profile
+echo 'export PATH=$PATH:$JAVA_HOME/bin' | sudo tee -a /etc/profile
 
-# Download Jenkins GPG key
-sudo curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key \
+# Apply JAVA_HOME for current session
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+export PATH=$PATH:$JAVA_HOME/bin
+
+# Install Jenkins repo
+mkdir -p /etc/apt/keyrings
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key \
   -o /etc/apt/keyrings/jenkins-keyring.asc
 
-# Add Jenkins repository
 echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc] \
-https://pkg.jenkins.io/debian-stable binary/" | \
-sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+https://pkg.jenkins.io/debian-stable binary/" | tee /etc/apt/sources.list.d/jenkins.list > /dev/null
 
-# Update & install Jenkins
-sudo apt update -y
-sudo apt install -y jenkins
+apt update -y
+apt install -y jenkins
 
-# Start Jenkins
-sudo systemctl start jenkins
-sudo systemctl enable jenkins
-sudo systemctl status jenkins --no-pager
+# Download backup (IAM role must be attached!)
+aws s3 cp s3://jenkins-config-terraform/jenkins_backup_v1.tar.gz /root/jenkins_backup.tar.gz --region us-east-1
 
-# Set JAVA_HOME permanently
-JAVA_HOME_PATH="/usr/lib/jvm/java-21-openjdk-amd64"
+# Restore Jenkins config
+systemctl stop jenkins
+tar -xzvf /root/jenkins_backup.tar.gz -C / --overwrite
+chown -R jenkins:jenkins /var/lib/jenkins
+rm /root/jenkins_backup.tar.gz
+systemctl start jenkins
 
-if ! grep -q "JAVA_HOME" /etc/profile; then
-    echo "export JAVA_HOME=$JAVA_HOME_PATH" | sudo tee -a /etc/profile
-    echo 'export PATH=$PATH:$JAVA_HOME/bin' | sudo tee -a /etc/profile
-fi
+# Set hostname
+hostnamectl set-hostname jenkins-master
 
-# Apply profile changes
-source /etc/profile
-
-echo "✅ Jenkins Installation Completed Successfully"
+# Enable password authentication for SSH (required for Jenkins Slave connection)
+sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config.d/*.conf
+systemctl restart ssh
