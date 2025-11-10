@@ -110,6 +110,56 @@
 }*/
 
 # -------------------------------------------------------------------------
+# Resource  : Jenkins Master Server
+# Purpose:
+#   - Install Jenkins, Java 21, AWS CLI
+#   - Restore Jenkins configuration from S3 bucket using IAM role
+# OS        : Ubuntu
+# Requires  : SSH connection between Jenkins Master and Slave nodes
+# -------------------------------------------------------------------------
+
+resource "aws_instance" "jenkins_master" {
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = "t2.small"
+  key_name               = aws_key_pair.devops_project.key_name
+  subnet_id              = module.vpc.public_subnets[0]
+  vpc_security_group_ids = [aws_security_group.ssh.id, aws_security_group.jenkins_master.id]
+  iam_instance_profile   = aws_iam_instance_profile.jenkins_instance_profile.name
+
+  tags = {
+    Name = "Jenkins-Master"
+  }
+
+  root_block_device {
+    volume_size           = 12
+    volume_type           = "gp3"
+    delete_on_termination = true
+  }
+
+  provisioner "file" {
+    source      = "scripts/jenkins_master.sh"
+    destination = "/home/ubuntu/jenkins_master.sh"
+  }
+
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    private_key = file("key-files/devops_project")
+    host        = self.public_ip
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sleep 30",
+      "until sudo apt update -y; do sleep 5; done",
+      "sudo apt install -y dos2unix",
+      "dos2unix /home/ubuntu/jenkins_master.sh",
+      "sudo bash /home/ubuntu/jenkins_master.sh > /var/log/jenkins_master_setup.log 2>&1"
+    ]
+  }
+}
+
+# -------------------------------------------------------------------------
 # Component : Jenkins Slave (Build Agent)
 # Purpose   : Provisions Jenkins Build Agent node 
 # OS        : Amazon Linux
@@ -132,44 +182,6 @@ resource "aws_instance" "jenkins_slave" {
     volume_type           = "gp3"
     delete_on_termination = true
   }
-
-  user_data = <<-EOF
-              #!/bin/bash
-                set -eux
-                
-              # Update system
-                apt update -y
-                apt install -y fontconfig ca-certificates apt-transport-https curl unzip
-                
-              # Install AWS CLI v2
-                curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-                unzip awscliv2.zip
-                sudo ./aws/install
-                
-              # Install Java 21
-                apt install -y openjdk-21-jdk
-                java -version
-
-              # Set JAVA_HOME globally
-                echo 'export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64' | sudo tee -a /etc/profile
-                echo 'export PATH=$PATH:$JAVA_HOME/bin' | sudo tee -a /etc/profile
-
-              # Apply JAVA_HOME for current session
-                export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
-                export PATH=$PATH:$JAVA_HOME/bin
-
-              # Set hostname
-                hostnamectl set-hostname jenkins-slave
-
-              # Enable password authentication for SSH (required for Jenkins Slave connection)
-                sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config
-                sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config.d/*.conf
-                systemctl restart ssh
-
-                mkdir -p /var/lib/jenkins
-                chown -R ubuntu:ubuntu /var/lib/jenkins
-                sudo chmod 1777 /var/lib/jenkins
-            EOF
 }
 
 resource "aws_ebs_volume" "jenkins_slave_volume" {
@@ -192,6 +204,11 @@ resource "aws_volume_attachment" "jenkins_slave_attachment" {
 resource "null_resource" "jenkins_slave_provision" {
   depends_on = [aws_volume_attachment.jenkins_slave_attachment]
 
+  provisioner "file" {
+    source      = "scripts/jenkins_slave.sh"
+    destination = "/home/ubuntu/jenkins_slave.sh"
+  }
+
   connection {
     type        = "ssh"
     user        = "ubuntu"
@@ -206,86 +223,15 @@ resource "null_resource" "jenkins_slave_provision" {
       "sudo mount /dev/xvdf /tmp",
       "echo '/dev/xvdf /tmp ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab",
       "sudo chown ubuntu:ubuntu /tmp",
-      "chmod 1777 /tmp"
+      "chmod 1777 /tmp",
+
+      "sleep 30",
+      "until sudo apt update -y; do sleep 5; done",
+      "sudo apt install -y dos2unix",
+      "dos2unix /home/ubuntu/jenkins_slave.sh",
+      "sudo bash /home/ubuntu/jenkins_slave.sh > /var/log/jenkins_slave_setup.log 2>&1"
     ]
   }
-}
-
-# -------------------------------------------------------------------------
-# Resource  : Jenkins Master Server
-# Purpose:
-#   - Install Jenkins, Java 21, AWS CLI
-#   - Restore Jenkins configuration from S3 bucket using IAM role
-# OS        : Ubuntu
-# Requires  : SSH connection between Jenkins Master and Slave nodes
-# -------------------------------------------------------------------------
-
-resource "aws_instance" "jenkins_master" {
-  ami                    = data.aws_ami.ubuntu.id
-  instance_type          = "t2.small"
-  key_name               = aws_key_pair.devops_project.key_name
-  subnet_id              = module.vpc.public_subnets[0]
-  vpc_security_group_ids = [aws_security_group.ssh.id, aws_security_group.jenkins_master.id]
-  iam_instance_profile   = aws_iam_instance_profile.jenkins_instance_profile.name
-
-  tags = {
-    Name = "Jenkins-Master"
-  }
-
-  user_data = <<-EOF
-              #!/bin/bash
-                set -eux
-                
-              # Update system
-                apt update -y
-                apt install -y fontconfig ca-certificates apt-transport-https curl unzip
-                
-              # Install AWS CLI v2
-                curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-                unzip awscliv2.zip
-                sudo ./aws/install
-                
-              # Install Java 21
-                apt install -y openjdk-21-jdk
-                java -version
-
-              # Set JAVA_HOME globally
-                echo 'export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64' | sudo tee -a /etc/profile
-                echo 'export PATH=$PATH:$JAVA_HOME/bin' | sudo tee -a /etc/profile
-
-              # Apply JAVA_HOME for current session
-                export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
-                export PATH=$PATH:$JAVA_HOME/bin
-                
-              # Install Jenkins repo
-                mkdir -p /etc/apt/keyrings
-                curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key \
-                  -o /etc/apt/keyrings/jenkins-keyring.asc
-                
-                echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc] \
-                https://pkg.jenkins.io/debian-stable binary/" | tee /etc/apt/sources.list.d/jenkins.list > /dev/null
-                
-                apt update -y
-                apt install -y jenkins
-                
-              # Download backup (IAM role must be attached!)
-                aws s3 cp s3://jenkins-config-terraform/jenkins_backup_v1.tar.gz /root/jenkins_backup.tar.gz --region us-east-1
-                
-              # Restore Jenkins config
-                systemctl stop jenkins
-                tar -xzvf /root/jenkins_backup.tar.gz -C / --overwrite
-                chown -R jenkins:jenkins /var/lib/jenkins
-                rm /root/jenkins_backup.tar.gz
-                systemctl start jenkins
-
-              # Set hostname
-                hostnamectl set-hostname jenkins-master
-
-              # Enable password authentication for SSH (required for Jenkins Slave connection)
-                sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config
-                sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config.d/*.conf
-                systemctl restart ssh
-            EOF
 }
 
 # -------------------------------------------------------------------------
@@ -306,6 +252,7 @@ resource "aws_instance" "nexus" {
   root_block_device {
     volume_size = 12
     volume_type = "gp3"
+    delete_on_termination = true
   }
 
   tags = {
@@ -328,7 +275,7 @@ resource "aws_instance" "nexus" {
     inline = [
       "sudo dnf install -y dos2unix",
       "dos2unix /home/ec2-user/nexus-setup.sh",
-      "sudo bash /home/ec2-user/nexus-setup.sh"
+      "sudo bash /home/ec2-user/nexus-setup.sh > /var/log/nexus_setup.log 2>&1"
     ]
   }
 }
@@ -349,6 +296,7 @@ resource "aws_instance" "sonarqube" {
   root_block_device {
     volume_size = 12
     volume_type = "gp3"
+    delete_on_termination = true
   }
 
   tags = {
@@ -372,7 +320,7 @@ resource "aws_instance" "sonarqube" {
       "sudo apt update -y",
       "sudo apt install -y dos2unix",
       "dos2unix /home/ubuntu/sonar-setup.sh",
-      "sudo bash /home/ubuntu/sonar-setup.sh"
+      "sudo bash /home/ubuntu/sonar-setup.sh > /var/log/sonar_setup.log 2>&1"
     ]
   }
 }
