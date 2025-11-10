@@ -4,11 +4,6 @@
 apt update -y
 apt install -y fontconfig ca-certificates apt-transport-https curl unzip
 
-# Install AWS CLI v2
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install
-
 # Install Java 21
 apt install -y openjdk-21-jdk
 java -version
@@ -33,3 +28,10 @@ systemctl restart ssh
 mkdir -p /var/lib/jenkins
 chown -R ubuntu:ubuntu /var/lib/jenkins
 sudo chmod 1777 /var/lib/jenkins
+
+# Format and mount /tmp disk
+mkfs.ext4 -F /dev/xvdf
+mkdir -p /tmp
+mount /dev/xvdf /tmp
+echo "/dev/xvdf /tmp ext4 defaults,nofail 0 2" >> /etc/fstab
+chmod 1777 /tmp
