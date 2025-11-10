@@ -118,7 +118,7 @@
 # Requires  : SSH connection between Jenkins Master and Slave nodes
 # -------------------------------------------------------------------------
 
-resource "aws_instance" "jenkins_master" {
+/*resource "aws_instance" "jenkins_master" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t2.small"
   key_name               = aws_key_pair.devops_project.key_name
@@ -136,28 +136,32 @@ resource "aws_instance" "jenkins_master" {
     delete_on_termination = true
   }
 
-  provisioner "file" {
-    source      = "scripts/jenkins_master.sh"
-    destination = "/home/ubuntu/jenkins_master.sh"
-  }
+  user_data = <<-EOF
+              #!/bin/bash
+              set -eux
 
-  connection {
-    type        = "ssh"
-    user        = "ubuntu"
-    private_key = file("key-files/devops_project")
-    host        = self.public_ip
-  }
+              export PATH=$PATH:/usr/local/bin:/usr/bin:/bin
 
-  provisioner "remote-exec" {
-    inline = [
-      "sleep 30",
-      "until sudo apt update -y; do sleep 5; done",
-      "sudo apt install -y dos2unix",
-      "dos2unix /home/ubuntu/jenkins_master.sh",
-      "sudo sh -c 'bash /home/ubuntu/jenkins_master.sh > /var/log/jenkins_master_setup.log 2>&1'"
-    ]
-  }
-}
+              # Install prerequisites
+              until apt-get update -y; do sleep 5; done
+              apt-get install -y curl unzip ca-certificates > /dev/null
+
+              # Install AWS CLI v2
+              curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+              unzip -q /tmp/awscliv2.zip -d /tmp/
+              /tmp/aws/install --update
+              rm -rf /tmp/aws /tmp/awscliv2.zip
+
+              # Download jenkins_master.sh from S3
+              aws s3 cp s3://jenkins-config-terraform/jenkins_master.sh /root/jenkins_master.sh --region us-east-1
+
+              chmod +x /root/jenkins_master.sh
+              apt-get install -y dos2unix > /dev/null
+              dos2unix /root/jenkins_master.sh
+
+              bash /root/jenkins_master.sh > /var/log/jenkins_master_setup.log 2>&1
+          EOF
+}*/
 
 # -------------------------------------------------------------------------
 # Component : Jenkins Slave (Build Agent)
@@ -166,12 +170,13 @@ resource "aws_instance" "jenkins_master" {
 # Requires  : SSH connection between Jenkins Master and Slave nodes
 # -------------------------------------------------------------------------
 
-resource "aws_instance" "jenkins_slave" {
+/*resource "aws_instance" "jenkins_slave" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t2.small"
   key_name               = aws_key_pair.devops_project.key_name
   subnet_id              = module.vpc.public_subnets[1]
   vpc_security_group_ids = [aws_security_group.ssh.id, aws_security_group.jenkins_master.id]
+  iam_instance_profile   = aws_iam_instance_profile.jenkins_instance_profile.name
 
   tags = {
     Name = "Jenkins-Slave"
@@ -182,57 +187,40 @@ resource "aws_instance" "jenkins_slave" {
     volume_type           = "gp3"
     delete_on_termination = true
   }
-}
 
-resource "aws_ebs_volume" "jenkins_slave_volume" {
-  availability_zone = aws_instance.jenkins_slave.availability_zone
-  size              = 2
-  type              = "gp3"
-
-  tags = {
-    Name = "jenkins-slave-tmp"
-  }
-}
-
-resource "aws_volume_attachment" "jenkins_slave_attachment" {
-  device_name  = "/dev/sdf"
-  volume_id    = aws_ebs_volume.jenkins_slave_volume.id
-  instance_id  = aws_instance.jenkins_slave.id
-  force_detach = true
-}
-
-resource "null_resource" "jenkins_slave_provision" {
-  depends_on = [aws_volume_attachment.jenkins_slave_attachment]
-
-  provisioner "file" {
-    source      = "scripts/jenkins_slave.sh"
-    destination = "/home/ubuntu/jenkins_slave.sh"
+  ebs_block_device {
+    device_name           = "/dev/sdf"
+    volume_size           = 2
+    volume_type           = "gp3"
+    delete_on_termination = true
   }
 
-  connection {
-    type        = "ssh"
-    user        = "ubuntu"
-    private_key = file("key-files/devops_project")
-    host        = aws_instance.jenkins_slave.public_ip
-  }
+  user_data = <<-EOF
+              #!/bin/bash
+              set -eux
 
-  provisioner "remote-exec" {
-    inline = [
-      "sudo mkfs.ext4 /dev/xvdf",
-      "sudo mkdir -p /tmp",
-      "sudo mount /dev/xvdf /tmp",
-      "echo '/dev/xvdf /tmp ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab",
-      "sudo chown ubuntu:ubuntu /tmp",
-      "chmod 1777 /tmp",
+              export PATH=$PATH:/usr/local/bin:/usr/bin:/bin
 
-      "sleep 30",
-      "until sudo apt update -y; do sleep 5; done",
-      "sudo apt install -y dos2unix",
-      "dos2unix /home/ubuntu/jenkins_slave.sh",
-      "sudo sh -c 'bash /home/ubuntu/jenkins_slave.sh > /var/log/jenkins_slave_setup.log 2>&1'"
-    ]
-  }
-}
+              # Install prerequisites
+              until apt-get update -y; do sleep 5; done
+              apt-get install -y curl unzip ca-certificates > /dev/null
+
+              # Install AWS CLI v2
+              curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+              unzip -q /tmp/awscliv2.zip -d /tmp/
+              /tmp/aws/install --update
+              rm -rf /tmp/aws /tmp/awscliv2.zip
+
+              # Download jenkins_slave.sh from S3
+              aws s3 cp s3://jenkins-config-terraform/jenkins_slave.sh /root/jenkins_slave.sh --region us-east-1
+
+              chmod +x /root/jenkins_slave.sh
+              apt-get install -y dos2unix > /dev/null
+              dos2unix /root/jenkins_slave.sh
+
+              bash /root/jenkins_slave.sh > /var/log/jenkins_slave_setup.log 2>&1
+          EOF
+}*/
 
 # -------------------------------------------------------------------------
 # Resource  : Nexus Repository Manager Server
@@ -241,17 +229,17 @@ resource "null_resource" "jenkins_slave_provision" {
 # OS        : Amazon Linux
 # -------------------------------------------------------------------------
 
-resource "aws_instance" "nexus" {
+/*resource "aws_instance" "nexus" {
   ami                    = data.aws_ami.linux.id
   instance_type          = "t2.medium"
   key_name               = aws_key_pair.devops_project.key_name
   subnet_id              = module.vpc.public_subnets[1]
   vpc_security_group_ids = [aws_security_group.ssh.id, aws_security_group.nexus.id]
-  #iam_instance_profile   = aws_iam_instance_profile.jenkins_instance_profile.name
+  iam_instance_profile   = aws_iam_instance_profile.jenkins_instance_profile.name
 
   root_block_device {
-    volume_size = 12
-    volume_type = "gp3"
+    volume_size           = 12
+    volume_type           = "gp3"
     delete_on_termination = true
   }
 
@@ -259,26 +247,34 @@ resource "aws_instance" "nexus" {
     Name = "Nexus-Server"
   }
 
-  connection {
-    type        = "ssh"
-    user        = "ec2-user"
-    private_key = file("key-files/devops_project")
-    host        = self.public_ip
-  }
-
-  provisioner "file" {
-    source      = "scripts/nexus-setup.sh"
-    destination = "/home/ec2-user/nexus-setup.sh"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo dnf install -y dos2unix",
-      "dos2unix /home/ec2-user/nexus-setup.sh",
-      "sudo sh -c 'bash /home/ec2-user/nexus-setup.sh > /var/log/nexus_setup.log 2>&1'"
-    ]
-  }
-}
+  user_data = <<-EOF
+              #!/bin/bash
+              set -eux
+              
+              export PATH=$PATH:/usr/local/bin:/usr/bin:/bin
+              
+              # Update system
+              dnf update -y
+              
+              # Install prerequisites (do NOT install curl)
+              dnf install -y unzip ca-certificates wget
+              
+              # Install AWS CLI v2
+              curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+              unzip -q /tmp/awscliv2.zip -d /tmp/
+              /tmp/aws/install --update
+              rm -rf /tmp/aws /tmp/awscliv2.zip
+              
+              # Download Nexus setup script from S3
+              aws s3 cp s3://jenkins-config-terraform/nexus-setup.sh /root/nexus-setup.sh --region us-east-1
+              
+              chmod +x /root/nexus-setup.sh
+              dnf install -y dos2unix
+              dos2unix /root/nexus-setup.sh
+              
+              bash /root/nexus-setup.sh > /var/log/nexus_install.log 2>&1
+          EOF
+}*/
 
 # -------------------------------------------------------------------------
 # Resource  : SonarQube Server
@@ -286,16 +282,17 @@ resource "aws_instance" "nexus" {
 # OS        : Ubuntu
 # -------------------------------------------------------------------------
 
-resource "aws_instance" "sonarqube" {
+/*resource "aws_instance" "sonarqube" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t2.medium"
   key_name               = aws_key_pair.devops_project.key_name
   subnet_id              = module.vpc.public_subnets[2]
   vpc_security_group_ids = [aws_security_group.ssh.id, aws_security_group.sonarqube.id]
+  iam_instance_profile   = aws_iam_instance_profile.jenkins_instance_profile.name
 
   root_block_device {
-    volume_size = 12
-    volume_type = "gp3"
+    volume_size           = 12
+    volume_type           = "gp3"
     delete_on_termination = true
   }
 
@@ -303,27 +300,32 @@ resource "aws_instance" "sonarqube" {
     Name = "SonarQube-Server"
   }
 
-  provisioner "file" {
-    source      = "scripts/sonar-setup.sh"
-    destination = "/home/ubuntu/sonar-setup.sh"
-  }
+  user_data = <<-EOF
+              #!/bin/bash
+              set -eux
 
-  connection {
-    type        = "ssh"
-    user        = "ubuntu"
-    private_key = file("key-files/devops_project")
-    host        = self.public_ip
-  }
+              export PATH=$PATH:/usr/local/bin:/usr/bin:/bin
 
-  provisioner "remote-exec" {
-    inline = [
-      "sudo apt update -y",
-      "sudo apt install -y dos2unix",
-      "dos2unix /home/ubuntu/sonar-setup.sh",
-      "sudo sh -c 'bash /home/ubuntu/sonar-setup.sh > /var/log/sonar_setup.log 2>&1'"
-    ]
-  }
-}
+              # Install prerequisites
+              until apt-get update -y; do sleep 5; done
+              apt-get install -y curl unzip ca-certificates > /dev/null
+
+              # Install AWS CLI v2
+              curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+              unzip -q /tmp/awscliv2.zip -d /tmp/
+              /tmp/aws/install --update
+              rm -rf /tmp/aws /tmp/awscliv2.zip
+
+              # Download sonar-setup.sh from S3
+              aws s3 cp s3://jenkins-config-terraform/sonar-setup.sh /root/sonar-setup.sh --region us-east-1
+
+              chmod +x /root/sonar-setup.sh
+              apt-get install -y dos2unix > /dev/null
+              dos2unix /root/sonar-setup.sh
+
+              bash /root/sonar-setup.sh > /var/log/sonar-setup_setup.log 2>&1
+          EOF
+}*/
 
 # -------------------------------------------------------------------------
 # Resource  : Jenkins Ansible Deployment Nodes
