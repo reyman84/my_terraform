@@ -1,5 +1,4 @@
 #!/bin/bash
-set -eux
 
 # Update system
 apt update -y
