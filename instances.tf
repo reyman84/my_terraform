@@ -154,7 +154,7 @@ resource "aws_instance" "jenkins_master" {
       "until sudo apt update -y; do sleep 5; done",
       "sudo apt install -y dos2unix",
       "dos2unix /home/ubuntu/jenkins_master.sh",
-      "sudo bash /home/ubuntu/jenkins_master.sh > /var/log/jenkins_master_setup.log 2>&1"
+      "sudo sh -c 'bash /home/ubuntu/jenkins_master.sh > /var/log/jenkins_master_setup.log 2>&1'"
     ]
   }
 }
@@ -229,7 +229,7 @@ resource "null_resource" "jenkins_slave_provision" {
       "until sudo apt update -y; do sleep 5; done",
       "sudo apt install -y dos2unix",
       "dos2unix /home/ubuntu/jenkins_slave.sh",
-      "sudo bash /home/ubuntu/jenkins_slave.sh > /var/log/jenkins_slave_setup.log 2>&1"
+      "sudo sh -c 'bash /home/ubuntu/jenkins_slave.sh > /var/log/jenkins_slave_setup.log 2>&1'"
     ]
   }
 }
@@ -275,7 +275,7 @@ resource "aws_instance" "nexus" {
     inline = [
       "sudo dnf install -y dos2unix",
       "dos2unix /home/ec2-user/nexus-setup.sh",
-      "sudo bash /home/ec2-user/nexus-setup.sh > /var/log/nexus_setup.log 2>&1"
+      "sudo sh -c 'bash /home/ec2-user/nexus-setup.sh > /var/log/nexus_setup.log 2>&1'"
     ]
   }
 }
@@ -320,7 +320,7 @@ resource "aws_instance" "sonarqube" {
       "sudo apt update -y",
       "sudo apt install -y dos2unix",
       "dos2unix /home/ubuntu/sonar-setup.sh",
-      "sudo bash /home/ubuntu/sonar-setup.sh > /var/log/sonar_setup.log 2>&1"
+      "sudo sh -c 'bash /home/ubuntu/sonar-setup.sh > /var/log/sonar_setup.log 2>&1'"
     ]
   }
 }
