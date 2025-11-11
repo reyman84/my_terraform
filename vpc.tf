@@ -25,20 +25,8 @@ module "vpc" {
 ## Key-Pairs ##
 ###############
 
-# --------------------- Baston Host --------------------- #
+# --------------------- Single Key for all servers --------------------- #
 resource "aws_key_pair" "devops_project" {
   key_name   = "devops_project"
   public_key = file("key-files/devops_project.pub")
-}
-
-# --------------------- Web Server --------------------- #
-/*resource "aws_key_pair" "web01" {
-  key_name   = "web-host"
-  public_key = file("key-files/web01.pub")
-}*/
-
-# --------------------- Ansible --------------------- #
-resource "aws_key_pair" "ansible" {
-  key_name   = "ansible"
-  public_key = file("key-files/ansible.pub")
 }
