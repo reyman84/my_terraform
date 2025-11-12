@@ -5,7 +5,7 @@
 # OS        : Ubuntu
 # -------------------------------------------------------------------------
 
-resource "aws_instance" "docker" {
+/*resource "aws_instance" "docker" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.devops_project.key_name
@@ -13,47 +13,11 @@ resource "aws_instance" "docker" {
   vpc_security_group_ids = [aws_security_group.ssh.id]
 
   tags = {
-    Name = "Docker-Engine"
+    Name = "Docker-Engine
   }
 
-  user_data = <<-EOF
-              #!/bin/bash
-              set -eux
-
-              # Remove old Docker packages
-              for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do
-                apt-get remove -y $pkg || true
-              done
-
-              # Install dependencies
-              apt-get update -y
-              apt-get install -y ca-certificates curl gnupg lsb-release
-
-              # Add Docker’s official GPG key
-              install -m 0755 -d /etc/apt/keyrings
-              curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-              chmod a+r /etc/apt/keyrings/docker.asc
-
-              # Set up the repository
-              echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
-              https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" \
-              > /etc/apt/sources.list.d/docker.list
-
-              # Install Docker Engine
-              apt-get update -y
-              apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-              # Enable and start Docker
-              systemctl enable docker
-              systemctl start docker
-
-              # Add ubuntu user to docker group
-              usermod -aG docker ubuntu
-
-              # Log
-              echo "Docker installation completed successfully!" > /var/log/docker_install.log
-          EOF
-}
+  user_data = file("${path.module}/installation_scripts/docker_install.sh")
+}*/
 
 
 # -------------------------------------------------------------------------
@@ -75,13 +39,7 @@ resource "aws_instance" "docker" {
     Name = "Ansible-Controller"
   }
 
-  user_data = <<-EOF
-              #!/bin/bash
-              apt update -y
-              apt install -y software-properties-common
-              apt-add-repository --yes --update ppa:ansible/ansible
-              apt install -y ansible
-            EOF
+  user_data = file("${path.module}/installation_scripts/ansible.sh")
 }*/
 
 # -------------------------------------------------------------------------
@@ -124,9 +82,8 @@ resource "aws_instance" "docker" {
 
 # -------------------------------------------------------------------------
 # Resource  : Jenkins Master Server
-# Purpose:
-#   - Install Jenkins, Java 21, AWS CLI
-#   - Restore Jenkins configuration from S3 bucket using IAM role
+# Purpose   : - Install Jenkins, Java 21, AWS CLI
+#             - Restore Jenkins configuration from S3 bucket using IAM role
 # OS        : Ubuntu
 # Requires  : SSH connection between Jenkins Master and Slave nodes
 # -------------------------------------------------------------------------
@@ -149,31 +106,7 @@ resource "aws_instance" "docker" {
     delete_on_termination = true
   }
 
-  user_data = <<-EOF
-              #!/bin/bash
-              set -eux
-
-              export PATH=$PATH:/usr/local/bin:/usr/bin:/bin
-
-              # Install prerequisites
-              until apt-get update -y; do sleep 5; done
-              apt-get install -y curl unzip ca-certificates > /dev/null
-
-              # Install AWS CLI v2
-              curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
-              unzip -q /tmp/awscliv2.zip -d /tmp/
-              /tmp/aws/install --update
-              rm -rf /tmp/aws /tmp/awscliv2.zip
-
-              # Download jenkins_master.sh from S3
-              aws s3 cp s3://jenkins-config-terraform/jenkins_master.sh /root/jenkins_master.sh --region us-east-1
-
-              chmod +x /root/jenkins_master.sh
-              apt-get install -y dos2unix > /dev/null
-              dos2unix /root/jenkins_master.sh
-
-              bash /root/jenkins_master.sh > /var/log/jenkins_master_setup.log 2>&1
-          EOF
+  user_data = file("${path.module}/installation_scripts/jenkins_master.sh")
 }*/
 
 # -------------------------------------------------------------------------
@@ -208,31 +141,7 @@ resource "aws_instance" "docker" {
     delete_on_termination = true
   }
 
-  user_data = <<-EOF
-              #!/bin/bash
-              set -eux
-
-              export PATH=$PATH:/usr/local/bin:/usr/bin:/bin
-
-              # Install prerequisites
-              until apt-get update -y; do sleep 5; done
-              apt-get install -y curl unzip ca-certificates > /dev/null
-
-              # Install AWS CLI v2
-              curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
-              unzip -q /tmp/awscliv2.zip -d /tmp/
-              /tmp/aws/install --update
-              rm -rf /tmp/aws /tmp/awscliv2.zip
-
-              # Download jenkins_slave.sh from S3
-              aws s3 cp s3://jenkins-config-terraform/jenkins_slave.sh /root/jenkins_slave.sh --region us-east-1
-
-              chmod +x /root/jenkins_slave.sh
-              apt-get install -y dos2unix > /dev/null
-              dos2unix /root/jenkins_slave.sh
-
-              bash /root/jenkins_slave.sh > /var/log/jenkins_slave_setup.log 2>&1
-          EOF
+  user_data = file("${path.module}/installation_scripts/jenkins_slave.sh")
 }*/
 
 # -------------------------------------------------------------------------
@@ -260,33 +169,7 @@ resource "aws_instance" "docker" {
     Name = "Nexus-Server"
   }
 
-  user_data = <<-EOF
-              #!/bin/bash
-              set -eux
-              
-              export PATH=$PATH:/usr/local/bin:/usr/bin:/bin
-              
-              # Update system
-              dnf update -y
-              
-              # Install prerequisites (do NOT install curl)
-              dnf install -y unzip ca-certificates wget
-              
-              # Install AWS CLI v2
-              curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
-              unzip -q /tmp/awscliv2.zip -d /tmp/
-              /tmp/aws/install --update
-              rm -rf /tmp/aws /tmp/awscliv2.zip
-              
-              # Download Nexus setup script from S3
-              aws s3 cp s3://jenkins-config-terraform/nexus-setup.sh /root/nexus-setup.sh --region us-east-1
-              
-              chmod +x /root/nexus-setup.sh
-              dnf install -y dos2unix
-              dos2unix /root/nexus-setup.sh
-              
-              bash /root/nexus-setup.sh > /var/log/nexus_install.log 2>&1
-          EOF
+  user_data = file("${path.module}/installation_scripts/nexus-setup.sh")
 }*/
 
 # -------------------------------------------------------------------------
@@ -313,31 +196,7 @@ resource "aws_instance" "docker" {
     Name = "SonarQube-Server"
   }
 
-  user_data = <<-EOF
-              #!/bin/bash
-              set -eux
-
-              export PATH=$PATH:/usr/local/bin:/usr/bin:/bin
-
-              # Install prerequisites
-              until apt-get update -y; do sleep 5; done
-              apt-get install -y curl unzip ca-certificates > /dev/null
-
-              # Install AWS CLI v2
-              curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
-              unzip -q /tmp/awscliv2.zip -d /tmp/
-              /tmp/aws/install --update
-              rm -rf /tmp/aws /tmp/awscliv2.zip
-
-              # Download sonar-setup.sh from S3
-              aws s3 cp s3://jenkins-config-terraform/sonar-setup.sh /root/sonar-setup.sh --region us-east-1
-
-              chmod +x /root/sonar-setup.sh
-              apt-get install -y dos2unix > /dev/null
-              dos2unix /root/sonar-setup.sh
-
-              bash /root/sonar-setup.sh > /var/log/sonar-setup_setup.log 2>&1
-          EOF
+  user_data = file("${path.module}/installation_scripts/sonar-setup.sh")
 }*/
 
 # -------------------------------------------------------------------------
