@@ -1,13 +1,13 @@
 # -------------------------------------------------------------------------
 # Resource  : Docker Engine Server
 # Purpose   : Provision a Docker Engine server with Docker CE, Buildx,
-#             and Docker Compose plugin installed through remote-exec.
+#             and Docker Compose plugin installed through user_data.
 # OS        : Ubuntu
 # -------------------------------------------------------------------------
 
-/*resource "aws_instance" "docker" {
-  instance_type          = "t2.micro"
+resource "aws_instance" "docker" {
   ami                    = data.aws_ami.ubuntu.id
+  instance_type          = "t2.micro"
   key_name               = aws_key_pair.devops_project.key_name
   subnet_id              = module.vpc.public_subnets[1]
   vpc_security_group_ids = [aws_security_group.ssh.id]
@@ -16,32 +16,45 @@
     Name = "Docker-Engine"
   }
 
-  connection {
-    type        = "ssh"
-    user        = "ubuntu"
-    private_key = file("key-files/devops_project")
-    host        = self.public_ip
-  }
+  user_data = <<-EOF
+              #!/bin/bash
+              set -eux
 
-  provisioner "remote-exec" {
-    inline = [
-      "sudo apt update -y",
-      "for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt remove -y $pkg || true; done",
+              # Remove old Docker packages
+              for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do
+                apt-get remove -y $pkg || true
+              done
 
-      "sudo apt install -y ca-certificates curl gnupg lsb-release",
-      "sudo install -m 0755 -d /etc/apt/keyrings",
-      "sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc",
-      "sudo chmod a+r /etc/apt/keyrings/docker.asc",
+              # Install dependencies
+              apt-get update -y
+              apt-get install -y ca-certificates curl gnupg lsb-release
 
-      "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable\" | sudo tee /etc/apt/sources.list.d/docker.list",
+              # Add Docker’s official GPG key
+              install -m 0755 -d /etc/apt/keyrings
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+              chmod a+r /etc/apt/keyrings/docker.asc
 
-      "sudo apt update -y",
-      "sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin",
+              # Set up the repository
+              echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
+              https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" \
+              > /etc/apt/sources.list.d/docker.list
 
-      "sudo usermod -aG docker ubuntu"
-    ]
-  }
-}*/
+              # Install Docker Engine
+              apt-get update -y
+              apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+              # Enable and start Docker
+              systemctl enable docker
+              systemctl start docker
+
+              # Add ubuntu user to docker group
+              usermod -aG docker ubuntu
+
+              # Log
+              echo "Docker installation completed successfully!" > /var/log/docker_install.log
+          EOF
+}
+
 
 # -------------------------------------------------------------------------
 # Resource  : Ansible Controller Server
