@@ -42,6 +42,8 @@ systemctl daemon-reload
 systemctl start nexus
 systemctl enable nexus
 
-# Customize bash prompt
-echo "PS1='\[\e[0;32m\]\u\[\e[0m\]@\[\e[0;35m\]\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ '" >> /etc/bash.bashrc
-source /etc/bash.bashrc
+# --- Customize root prompt ---
+echo "PS1='\[\e[0;32m\]\u\[\e[0m\]@\[\e[0;35m\]\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ '" >> /root/.bashrc
+
+# --- Customize ec2-user prompt ---
+sudo -u ec2-user bash -c 'echo "PS1=\"\[\e[0;32m\]\u\[\e[0m\]@\[\e[0;35m\]\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ \"" >> ~/.bashrc'
