@@ -4,7 +4,7 @@
 
 # Allow All Traffic (Inbound + Outbound)
 # OPTIONAL — disabled
-/*resource "aws_security_group" "allow_all" {
+resource "aws_security_group" "allow_all" {
   name        = "allow_all_traffic"
   description = "Allow all inbound and outbound traffic"
   vpc_id      = module.vpc.vpc_id
@@ -26,7 +26,7 @@
   tags = {
     Name = "allow_all_traffic"
   }
-}*/
+}
 
 ##########################################
 #       SSH Security Group + Rules
