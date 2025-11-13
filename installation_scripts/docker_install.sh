@@ -33,3 +33,7 @@ usermod -aG docker ubuntu
 
 # Log
 echo "Docker installation completed successfully!" > /var/log/docker_install.log
+
+# Customize bash prompt
+echo "PS1='\[\e[0;32m\]\u\[\e[0m\]@\[\e[0;35m\]\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ '" >> ~/.bashrc
+source ~/.bashrc
