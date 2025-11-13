@@ -5,19 +5,19 @@
 # OS        : Ubuntu
 # -------------------------------------------------------------------------
 
-/*resource "aws_instance" "docker" {
+resource "aws_instance" "docker" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.devops_project.key_name
   subnet_id              = module.vpc.public_subnets[1]
-  vpc_security_group_ids = [aws_security_group.ssh.id]
+  vpc_security_group_ids = [aws_security_group.ssh.id,aws_security_group.allow_all.id]
 
   tags = {
-    Name = "Docker-Engine
+    Name = "Docker-Engine"
   }
 
   user_data = file("${path.module}/installation_scripts/docker_install.sh")
-}*/
+}
 
 
 # -------------------------------------------------------------------------
