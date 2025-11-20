@@ -1,0 +1,53 @@
+# -----------------------------------------------------------------------------
+# Resource   : Docker Compose - WordPress + MySQL Stack
+# Purpose    : Deploy a fully functional WordPress application with a 
+#              backend MySQL database using Docker containers.
+# Components : 
+#    - MySQL 5.7 database container
+#    - WordPress (latest) Apache/PHP container
+# Storage    : Persistent data using named Docker volumes
+# Networking : Custom bridge network to enable internal container communication
+# Usage      : Run `docker compose up -d` to deploy the stack
+# -----------------------------------------------------------------------------
+
+services:
+  db:
+    image: mysql:5.7
+    container_name: mysql-container
+    restart: always
+    environment:
+      MYSQL_USER: wordpressuser
+      MYSQL_ROOT_PASSWORD: vprofile
+      MYSQL_DATABASE: wordpress
+      MYSQL_PASSWORD: wordpress
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - wordpress_network
+
+  wordpress:
+    image: wordpress:latest
+    container_name: wordpress-container
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpressuser
+      WORDPRESS_DB_PASSWORD: wordpress
+    volumes:
+      - wp_data:/var/www/html
+    ports:
+      - "8080:80"
+    networks:
+      - wordpress_network
+    depends_on:
+      - db
+
+volumes:
+  db_data:
+  wp_data:
+
+networks:
+  wordpress_network:
+    driver: bridge
