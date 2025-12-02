@@ -5,20 +5,43 @@
 # OS        : Ubuntu
 # -------------------------------------------------------------------------
 
-resource "aws_instance" "docker" {
+/*resource "aws_instance" "docker" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.devops_project.key_name
   subnet_id              = module.vpc.public_subnets[1]
-  vpc_security_group_ids = [aws_security_group.ssh.id,aws_security_group.allow_all.id]
+  vpc_security_group_ids = [aws_security_group.ssh.id, aws_security_group.allow_all.id]
 
   tags = {
     Name = "Docker-Engine"
   }
 
   user_data = file("${path.module}/installation_scripts/docker_install.sh")
-}
+}*/
 
+# -------------------------------------------------------------------------
+# Resource  : Kubernetes Minikube Server
+# Purpose   : Provision a single-node Kubernetes cluster for learning and
+#             development purposes using Minikube.
+# Cluster   : Single-node (control-plane + worker on same instance) 
+#             Installs Docker CE, kubectl, conntrack, and Minikube.
+# Runtime   : Docker (Minikube --driver=docker)
+# OS        : Ubuntu (latest LTS) - Requires t3.medium or higher.
+# -------------------------------------------------------------------------
+
+resource "aws_instance" "k8s-minikube" { # One node cluster for learning purpose
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = "t3.medium"
+  key_name               = aws_key_pair.devops_project.key_name
+  subnet_id              = module.vpc.public_subnets[2]
+  vpc_security_group_ids = [aws_security_group.ssh.id, aws_security_group.allow_all.id]
+
+  tags = {
+    Name = "k8s-minikube"
+  }
+
+  user_data = file("${path.module}/installation_scripts/minikube.sh")
+}
 
 # -------------------------------------------------------------------------
 # Resource  : Ansible Controller Server
