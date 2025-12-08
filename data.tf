@@ -1,5 +1,23 @@
-# Fetch latest Ubuntu 24.04 LTS AMI (Noble Numbat) with gp3 and HVM virtualization
-data "aws_ami" "ubuntu" {
+# Ubuntu 22.04 LTS AMI (Jammy Jellyfish)
+data "aws_ami" "ubuntu_22" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["099720109477"] # Canonical
+}
+
+
+# Ubuntu 24.04 LTS AMI (Noble Numbat)
+data "aws_ami" "ubuntu_24" {
   most_recent = true
 
   filter {
@@ -15,7 +33,7 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"] # Canonical
 }
 
-# Fetch latest Amazon Linux 2023 AMI with Kernel 6.1 and HVM virtualization
+# Amazon Linux 2023 AMI
 data "aws_ami" "linux" {
   most_recent = true
 
