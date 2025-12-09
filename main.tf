@@ -2,11 +2,12 @@
 # Resource  : Docker Engine Server
 # Purpose   : Provision a Docker Engine server with Docker CE, Buildx,
 #             and Docker Compose plugin installed through user_data.
-# OS        : Ubuntu
+# OS        : ubuntu_24
 # -------------------------------------------------------------------------
 
 /*resource "aws_instance" "docker" {
-  ami                    = data.aws_ami.ubuntu.id
+  count                  = 3
+  ami                    = data.aws_ami.ubuntu_24.id
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.devops_project.key_name
   subnet_id              = module.vpc.public_subnets[1]
@@ -26,11 +27,11 @@
 # Cluster   : Single-node (control-plane + worker on same instance) 
 #             Installs Docker CE, kubectl, conntrack, and Minikube.
 # Runtime   : Docker (Minikube --driver=docker)
-# OS        : Ubuntu (latest LTS) - Requires t3.medium or higher.
+# OS        : ubuntu_24 (latest LTS) - Requires t3.medium or higher.
 # -------------------------------------------------------------------------
 
-resource "aws_instance" "k8s-minikube" { # One node cluster for learning purpose
-  ami                    = data.aws_ami.ubuntu.id
+/*resource "aws_instance" "k8s-minikube" {
+  ami                    = data.aws_ami.ubuntu_24.id
   instance_type          = "t3.medium"
   key_name               = aws_key_pair.devops_project.key_name
   subnet_id              = module.vpc.public_subnets[2]
@@ -41,18 +42,53 @@ resource "aws_instance" "k8s-minikube" { # One node cluster for learning purpose
   }
 
   user_data = file("${path.module}/installation_scripts/minikube.sh")
+}*/
+
+# -----------------------------------------------------------------------------
+# Resource  : Kubernetes HA Cluster (Multi-Node)
+# Purpose   : Provision a multi-node Kubernetes cluster using kubeadm.
+#
+# Architecture:
+#   - Master Node: kubeadm init executed and Calico CNI installed
+#   - Worker Node: joins using kubeadm join command
+#
+# Installation:
+#   - Installs: Docker CE, kubeadm, kubectl, kubelet, containerd
+#   - Enables: br_netfilter, required sysctl params
+#   - Configures containerd + CRI
+#
+# Runtime   : containerd (default for Kubernetes 1.29+)
+# OS        : Ubuntu 22.04 LTS - t3.medium (Recommended for Control Plane)
+#
+# Security Groups: - Allows SSH + internal Kubernetes communication
+#                  - Access limited to VPC network
+# -----------------------------------------------------------------------------
+
+resource "aws_instance" "k8s-HA-cluster" {
+  count                  = 2
+  ami                    = data.aws_ami.ubuntu_22.id
+  instance_type          = "t3.medium"
+  key_name               = aws_key_pair.devops_project.key_name
+  subnet_id              = module.vpc.public_subnets[2]
+  vpc_security_group_ids = [aws_security_group.ssh.id, aws_security_group.allow_all.id]
+
+  tags = {
+    Name = "k8s-HA-Master-cluster"
+  }
+
+  user_data = file("${path.module}/installation_scripts/Create+K8s+HA+SetUp.sh")
 }
 
 # -------------------------------------------------------------------------
 # Resource  : Ansible Controller Server
 # Purpose   : Launch an Ansible Controller server with Ansible installed
 #             via user_data using PPA repository.
-# OS        : Ubuntu
+# OS        : Ubuntu_24
 # Requires  : SSH connection from Controller to Target Nodes
 # -------------------------------------------------------------------------
 
 /*resource "aws_instance" "ansible_controller" {
-  ami                    = data.aws_ami.ubuntu.id
+  ami                    = data.aws_ami.ubuntu_24.id
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.devops_project.key_name
   subnet_id              = module.vpc.public_subnets[0]
@@ -66,21 +102,21 @@ resource "aws_instance" "k8s-minikube" { # One node cluster for learning purpose
 }*/
 
 # -------------------------------------------------------------------------
-# Resource  : Ansuble Target Node - "Ubuntu"
+# Resource  : Ansuble Target Node - "ubuntu_24"
 # Purpose   : Target node for testing multi-platform automation.
-# OS        : Ubuntu
+# OS        : ubuntu_24
 # Requires  : SSH connection from Controller to Target Nodes
 # -------------------------------------------------------------------------
 
-/*resource "aws_instance" "ansible_node_ubuntu" {
-  ami                    = data.aws_ami.ubuntu.id
+/*resource "aws_instance" "ansible_node_ubuntu_24" {
+  ami                    = data.aws_ami.ubuntu_24.id
   instance_type          = "t2.micro"
   key_name               = aws_key_pair.devops_project.key_name
   subnet_id              = module.vpc.public_subnets[1]
   vpc_security_group_ids = [aws_security_group.ssh.id]
 
   tags = {
-    Name = "ansible-node-ubuntu"
+    Name = "ansible-node-ubuntu_24"
   }
 }*/
 
@@ -107,12 +143,12 @@ resource "aws_instance" "k8s-minikube" { # One node cluster for learning purpose
 # Resource  : Jenkins Master Server
 # Purpose   : - Install Jenkins, Java 21, AWS CLI
 #             - Restore Jenkins configuration from S3 bucket using IAM role
-# OS        : Ubuntu
+# OS        : ubuntu_24
 # Requires  : SSH connection between Jenkins Master and Slave nodes
 # -------------------------------------------------------------------------
 
 /*resource "aws_instance" "jenkins_master" {
-  ami                    = data.aws_ami.ubuntu.id
+  ami                    = data.aws_ami.ubuntu_24.id
   instance_type          = "t2.small"
   key_name               = aws_key_pair.devops_project.key_name
   subnet_id              = module.vpc.public_subnets[0]
@@ -140,7 +176,7 @@ resource "aws_instance" "k8s-minikube" { # One node cluster for learning purpose
 # -------------------------------------------------------------------------
 
 /*resource "aws_instance" "jenkins_slave" {
-  ami                    = data.aws_ami.ubuntu.id
+  ami                    = data.aws_ami.ubuntu_24.id
   instance_type          = "t2.small"
   key_name               = aws_key_pair.devops_project.key_name
   subnet_id              = module.vpc.public_subnets[1]
@@ -198,11 +234,11 @@ resource "aws_instance" "k8s-minikube" { # One node cluster for learning purpose
 # -------------------------------------------------------------------------
 # Resource  : SonarQube Server
 # Purpose   : Install and configure SonarQube using a custom shell script.
-# OS        : Ubuntu
+# OS        : ubuntu_24
 # -------------------------------------------------------------------------
 
 /*resource "aws_instance" "sonarqube" {
-  ami                    = data.aws_ami.ubuntu.id
+  ami                    = data.aws_ami.ubuntu_24.id
   instance_type          = "t2.medium"
   key_name               = aws_key_pair.devops_project.key_name
   subnet_id              = module.vpc.public_subnets[2]
@@ -226,14 +262,14 @@ resource "aws_instance" "k8s-minikube" { # One node cluster for learning purpose
 # Resource  : Jenkins Ansible Deployment Nodes
 # Purpose   : - Creates two nodes (Stage & Prod) for deployment automation.
 #             - Used by Jenkins for Deployment pipelines.
-# OS        : Ubuntu
+# OS        : ubuntu_24
 # -------------------------------------------------------------------------
 
 # Create two Jenkins Ansible deployment nodes for stage and prod environments
 /*resource "aws_instance" "jenkins_ansible_deployment" {
   count = 2
   instance_type          = "t2.micro"
-  ami                    = data.aws_ami.ubuntu.id
+  ami                    = data.aws_ami.ubuntu_24.id
   key_name               = aws_key_pair.devops_project.key_name
   subnet_id              = module.vpc.public_subnets[0]
   vpc_security_group_ids = [aws_security_group.ssh.id]
