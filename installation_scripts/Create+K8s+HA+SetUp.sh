@@ -43,15 +43,15 @@ EOF
 sudo sysctl --system
 
 # 6 Install Kubernetes Packages
-#(Kubernetes repo for v1.29 — matches your master node)
+#(Kubernetes repo for v1.28 — matches your master node)
 # Add key:
 sudo mkdir -p /etc/apt/keyrings
-curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | \
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | \
 sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
 # Add repo:
 echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] \
-https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /" | \
+https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /" | \
 sudo tee /etc/apt/sources.list.d/kubernetes.list
 
 # Install binary components:
@@ -67,17 +67,18 @@ sudo -u ubuntu bash -c 'echo "PS1=\"\[\e[0;32m\]\u\[\e[0m\]@\[\e[0;35m\]\h\[\e[0
   # (Note: This is only performed on the Control Plane Node)                   #
   # Initialize the Kubernetes cluster on the control plane node using kubeadm  #
   ##############################################################################
-/*
-hostnamectl set-hostname k8s-master-node
-sudo kubeadm init --pod-network-cidr 192.168.0.0/16
+
+# hostnamectl set-hostname k8s-master-node
+# sudo kubeadm init --pod-network-cidr 192.168.0.0/16
 
 # Set kubectl access:
-mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo chown $(id -u):$(id -g) $HOME/.kube/config
+# mkdir -p $HOME/.kube
+# sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+# sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
-kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.2/manifests/calico.yaml
+# kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.2/manifests/calico.yaml
 
-kubeadm token create --print-join-command
-*/
+# kubeadm token create --print-join-command
+
+# kubeadm token list
 
