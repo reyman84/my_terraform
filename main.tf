@@ -4,6 +4,29 @@
 #             and Docker Compose plugin installed through user_data.
 # OS        : ubuntu_24
 # -------------------------------------------------------------------------
+#
+# IMPORTANT NOTES:
+#
+# 1. Docker Compose is designed for SINGLE-NODE deployments only.
+#    - You can run multiple containers on a single server,
+#      but it cannot manage or orchestrate multiple servers.
+#
+# 2. To create a MULTI-NODE environment, you must use DOCKER SWARM.
+#    - Swarm requires Docker Engine to be installed on each node.
+#    - After provisioning, initialize the Swarm on one node:
+#         docker swarm init --advertise-addr <manager-private-ip>
+#
+#    - Get worker join token:
+#         docker swarm join-token worker -q
+#
+#    - Join worker nodes:
+#         docker swarm join --token <WORKER_TOKEN> <manager-private-ip>:2377
+#
+# 3. This Terraform resource only installs Docker Engine.
+#    It does NOT automatically join nodes into a Swarm cluster.
+#    (Swarm init/join can be added using additional user_data scripts.)
+#
+# -------------------------------------------------------------------------
 
 /*resource "aws_instance" "docker" {
   count                  = 3
@@ -65,7 +88,7 @@
 # -----------------------------------------------------------------------------
 
 resource "aws_instance" "k8s-HA-cluster" {
-  count                  = 2
+  count                  = 3
   ami                    = data.aws_ami.ubuntu_22.id
   instance_type          = "t3.medium"
   key_name               = aws_key_pair.devops_project.key_name
