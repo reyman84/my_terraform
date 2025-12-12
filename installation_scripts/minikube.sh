@@ -45,7 +45,8 @@ usermod -aG docker ubuntu       # Needed to run Docker without sudo
 # 10. Start Minikube as a non-root user (Kubernetes requires non-root for Docker driver)
 sudo -u ubuntu bash -c 'minikube start --driver=docker'
 
-# 11. Add colorful prompt for ubuntu user
+# 11. Add colorful prompt for root and ubuntu user
+echo "PS1=\"\[\e[0;32m\]\u\[\e[0m\]@\[\e[0;35m\]\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ \"" >> ~/.bashrc
 sudo -u ubuntu bash -c 'echo "PS1=\"\[\e[0;32m\]\u\[\e[0m\]@\[\e[0;35m\]\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ \"" >> ~/.bashrc'
 
 # 12. Set hostname to k8s-minikube
